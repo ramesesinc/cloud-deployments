@@ -1,0 +1,38 @@
+version: "3"
+
+services:
+
+  cloud-proxy-server:
+    image: nginx:latest
+    container_name: cloud-proxy-server
+    logging: 
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    environment:
+      TZ: "Asia/Manila"
+    ports:
+      - "80:80"
+    volumes:
+      - ../nginx/conf.d:/etc/nginx/conf.d
+      - ../nginx/res:/res
+
+
+  filipizen-web:
+    image: "ramesesinc/filipizen-web:v001"
+    container_name: filipizen-web
+    logging: 
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    environment:
+      TZ: "Asia/Manila"
+    env_file:
+      - ../env.conf
+    ports:
+      - "9080:8080"
+    volumes:
+      - ./modules:/apps/server/modules
+      - ./webroot:/apps/server/webroot
