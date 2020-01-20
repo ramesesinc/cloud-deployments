@@ -5,3 +5,4 @@
 .shutdown_pid
 Thumbs.db
 _custom
+redis-cache
