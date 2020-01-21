@@ -5,6 +5,7 @@ services:
   cloud-proxy-server:
     image: nginx:latest
     container_name: cloud-proxy-server
+    restart: always
     logging: 
       driver: "json-file"
       options:
@@ -22,6 +23,7 @@ services:
   filipizen-web:
     image: "ramesesinc/filipizen-web:v001"
     container_name: filipizen-web
+    restart: always
     logging: 
       driver: "json-file"
       options:

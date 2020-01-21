@@ -5,6 +5,7 @@ services:
   cloud-epayment-server:
     image: "ramesesinc/cloud-epayment-server:v001"
     container_name: cloud-epayment-server
+    restart: always
     logging: 
       driver: "json-file"
       options:
