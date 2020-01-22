@@ -16,8 +16,9 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ../nginx/conf.d:/etc/nginx/conf.d
       - ../nginx/res:/res
+      - ../nginx/conf.d:/etc/nginx/conf.d
+      - ../_custom/conf.d:/etc/nginx/conf.d
 
 
   filipizen-web:
@@ -33,6 +34,7 @@ services:
       TZ: "Asia/Manila"
     env_file:
       - ../env.conf
+      - ../_custom/env.conf
     ports:
       - "9080:8080"
     volumes:

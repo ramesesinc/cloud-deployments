@@ -15,6 +15,7 @@ services:
       TZ: "Asia/Manila"
     env_file:
       - ../env.conf
+      - ../_custom/env.conf
     ports:
       - "9072:8070"
     volumes:
