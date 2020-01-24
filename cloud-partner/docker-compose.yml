@@ -60,6 +60,7 @@ services:
   cloud-partner-server:
     image: "ramesesinc/cloud-partner-server:v001"
     container_name: cloud-partner-server
+    restart: always
     logging: 
       driver: "json-file"
       options:

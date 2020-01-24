@@ -17,7 +17,6 @@ services:
       - "80:80"
     volumes:
       - ../nginx/res:/res
-      - ../nginx/conf.d:/etc/nginx/conf.d
       - ../_custom/conf.d:/etc/nginx/conf.d
 
 
