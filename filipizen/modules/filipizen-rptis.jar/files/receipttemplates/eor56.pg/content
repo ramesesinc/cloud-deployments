@@ -44,7 +44,7 @@
 
 	<div style="text-align:center;float:right">
 		<h1 style="float:left"> <label r:context="eor56"><b>NO. #{receipt.receiptno}</b></label></h1>
-		<img id='qrcode' src="https://api.qrserver.com/v1/create-qr-code/?data=${PARAMS.receiptno}&amp;size=250x250" width="50" height="50" class="img-responsive" style="padding:0px"/>					
+		<img id='qrcode' src="https://api.qrserver.com/v1/create-qr-code/?data=https://filipizen.com/epayment/eor?receiptno=${PARAMS.receiptno}&amp;size=250x250" width="50" height="50" class="img-responsive" style="padding:0px"/>					
 		            <div id="output"></div>
 	</div>
 
