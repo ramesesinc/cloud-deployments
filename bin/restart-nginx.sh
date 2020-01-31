@@ -6,3 +6,4 @@ sleep 1
 docker-compose up -d
 docker-compose logs -f cloud-proxy-server
 cd $RUN_DIR
+

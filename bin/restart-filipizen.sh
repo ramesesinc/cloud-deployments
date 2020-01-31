@@ -6,3 +6,4 @@ sleep 1
 docker-compose up -d
 docker-compose logs -f filipizen-web
 cd $RUN_DIR
+
