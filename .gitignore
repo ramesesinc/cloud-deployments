@@ -10,3 +10,4 @@ rabbitmq
 redis-cache
 baks
 bak
+docker-compose-test.yml

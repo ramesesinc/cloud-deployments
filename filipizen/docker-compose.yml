@@ -2,24 +2,6 @@ version: "3"
 
 services:
 
-  cloud-proxy-server:
-    image: nginx:latest
-    container_name: cloud-proxy-server
-    restart: always
-    logging: 
-      driver: "json-file"
-      options:
-        max-file: "5"
-        max-size: "10m"
-    environment:
-      TZ: "Asia/Manila"
-    ports:
-      - "80:80"
-    volumes:
-      - ../nginx/res:/res
-      - ../_custom/conf.d:/etc/nginx/conf.d
-
-
   filipizen-web:
     image: "ramesesinc/filipizen-web:v001"
     container_name: filipizen-web
