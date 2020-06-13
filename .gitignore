@@ -6,6 +6,7 @@
 .shutdown_pid
 Thumbs.db
 _custom
-redis-cache
+/rabbitmq
+/redis-cache
 baks
 bak
