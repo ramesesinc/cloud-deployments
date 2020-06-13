@@ -103,7 +103,9 @@
 	@media print {
          .navbar-inverse{display:none}
          .footer{display:none}
-         #Header, #Footer { display: none ! important; }
+         #Header, #Footer { display: none !important; }
          @page {size: auto;margin: 0mm;}
+         button { display: none !important; }
+         table td { overflow:hidden !important }
       }
 </style>
