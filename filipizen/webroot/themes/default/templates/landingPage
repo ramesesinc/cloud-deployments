@@ -18,7 +18,7 @@
     <script src='https://www.google.com/recaptcha/api.js'></script>
     @stdlib()
     @css("materialize")
-    @css("main", ver:"131")
+    @css(value:"main", ver:"131")
     @page-imports()
 
 </head>
