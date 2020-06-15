@@ -3,20 +3,168 @@ html {
   height: 100%;
   box-sizing: border-box;
 }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-rendering: optimizeLegibility;
+  line-height: 1;
+  margin-top: 0;
+  color: #222;
+}
+
+blockquote + figcaption cite {
+  display: block;
+  font-size: inherit;
+  text-align: right;
+}
+
+body {
+  word-wrap: break-word;
+}
+
+pre code {
+  word-wrap: normal;
+}
+
+body {
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
+  color: #444;
+}
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
+          font-weight: 700;
+          text-transform: none;
+}
+
+h1 {
+  font-size: 2em;
+  /* 2*16 = 32 */
+}
+
+h2 {
+  font-size: 1.5em;
+  /* 1.5*16 = 24 */
+}
+
+h3 {
+  font-size: 1.17em;
+  /* 1.17*16 = 18.72 */
+}
+
+h4 {
+  font-size: 1em;
+  /* 1*16 = 16 */
+}
+
+h5 {
+  font-size: 0.83em;
+  /* 0.83*16 = 13.28 */
+}
+
+h6 {
+  font-size: 0.75em;
+  /* 0.75*16 = 12 */
+}
+
+h1 {
+  margin: 2.42424rem 0 1.454544rem;
+}
+
+h2 {
+  margin: 2.0202rem 0 1.21212rem;
+}
+
+h3 {
+  margin: 1.61616rem 0 1rem;
+}
+
+h4 {
+  margin: 1.21212rem 0 1;
+}
+
+h5 {
+  margin: 0.80808rem 0;
+}
+
+h6 {
+  margin: 0.70707rem 0;
+}
+
+p {
+  margin: auto auto 1.5rem;
+}
+
+small {
+  font-size: 65%;
+}
+
+input,
+abbr,
+acronym,
+blockquote,
+code,
+kbd,
+q,
+samp,
+var {
+  -webkit-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+}
+
+pre {
+  white-space: pre;
+}
+
+pre code {
+  white-space: -moz-pre-wrap;
+  white-space: pre-wrap;
+}
+
+code {
+  white-space: pre;
+  font-family: SF Mono, Consolas, Dejavu Sans Mono, Menlo, monospace;
+}
+
+abbr {
+  -webkit-font-variant: small-caps;
+  -moz-font-variant: small-caps;
+  -ms-font-variant: small-caps;
+  font-variant: small-caps;
+  font-weight: 600;
+  text-transform: lowercase;
+  color: gray;
+}
+
+abbr[title]:hover {
+  cursor: help;
+}
 body {
   position: relative;
   margin: 0;
   padding-bottom: 16rem;
   min-height: 100%;
 }
+
 html, body {
-  font-family: 'Open Sans',Helvetica Neue,Helvetica;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
 }
 header {
-  font-family: 'Open Sans',Helvetica Neue,Helvetica;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
   font-weight: normal;
   font-variant: normal;
 }
@@ -44,11 +192,8 @@ a{
 }
 .slogan {
     font-weight: 500;
-    font-family: 'Open Sans',Helvetica Neue,Helvetica;
-    letter-spacing: 0.02em;
-    font-size: 35px;
-    font-weight: bold;
-    line-height: 40px;
+    font-size: 50px;
+    font-weight: bold;  
     margin-bottom: 0;
 }
 .filipizen-img-logo {
@@ -93,7 +238,7 @@ a:hover, a:focus {
   vertical-align: middle;
   line-height: 1.5em;
   width: 100%;
-  margin-top: 160px;
+  margin-top: 90px;
   border-radius: 20px;
 }
 .parallax-bg{
@@ -115,6 +260,7 @@ a:hover, a:focus {
   padding:20px 0px;
   font-size: 20px;
   line-height: 1.333em;
+  margin-bottom: 70px;
 }
 
 .header-location{
@@ -134,7 +280,6 @@ height: 100%
 }
 .navbar {
     margin-bottom: 0;
-    text-transform: uppercase;
 }
 .navbar-inverse {
     background-color: transparent;
@@ -171,7 +316,6 @@ height: 100%
 
 #toolbar {
     background: transparent;
-    font: normal small "Lucida Grande",Verdana,sans-serif;
     height: 20px
 }
 #toolbar div.toolbar-menu {
@@ -236,6 +380,7 @@ height: 100%
     margin-top: 40px;
     bottom: 0 !important;
     width: 100%;
+    z-index: 9999;
 }
 .footer {
     background: #ecf0f1;
@@ -248,6 +393,20 @@ height: 100%
 .footer-links{
   text-align: center;
   padding-left: 0px;
+
 }
+.footer-links li{
+  display: inline-block;
 
+}
+ul, ol {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+.btnStarted { border-radius: 5px;width: 280px;font-size: 20px;padding: 6px;height: 45px; }
 
+@media only screen and (min-width: 993px) {
+  .container-start {
+    width: 60%;
+  }
+}
