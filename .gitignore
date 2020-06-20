@@ -6,8 +6,7 @@
 .shutdown_pid
 Thumbs.db
 _custom
-rabbitmq
-redis-cache
+/rabbitmq/data
+/redis-cache
 baks
 bak
-docker-compose-test.yml

@@ -63,7 +63,7 @@
 <div class="container">
   <%if( PAGE.title) {%>
     <br>
-    <h2>${PAGE.title}</h2>
+    <h1>${PAGE.title}</h1>
   <%}%>
   
   ${_content}
