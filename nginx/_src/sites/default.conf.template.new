@@ -7,17 +7,12 @@ server {
     # 
     root   /res;
 
-#    location /static {
-#        autoindex on;
-#    }
+    location /static {
+        autoindex on;
+    }
 
-    ## -------- OLD ------------
-#    location / {
-#        include conf.d/proxy.conf;
-#        proxy_pass http://${app_server_ip}:9080;
-#    }
 
-    ## -------- NEW ------------
+    ## -----------------------
     location / {
         include conf.d/proxy.conf;
         proxy_pass http://${app_server_ip}:5010;
@@ -33,18 +28,16 @@ server {
         proxy_pass http://${app_server_ip}:5010/filipizen/epayment/sendtopartner;
     }
 
+    # partner successurl callback
     location /payoptions {
         include conf.d/proxy.conf;
         proxy_pass http://${app_server_ip}:5010/filipizen/payoptions;
     }
+
+
     ## -----------------------
-
-
     location /socket.io {
         include conf.d/proxy.conf;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
         proxy_pass http://${app_server_ip}:3000;
     }
 

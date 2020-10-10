@@ -20,3 +20,9 @@ services:
       - "10001:8070"
     volumes:
       - ./modules:/apps/server/services/apps/enterprise/modules
+
+      - ../_res/lib/db-dialect.jar:/apps/server/lib/db-dialect.jar
+      - ../_res/lib/rameses-common2.jar:/apps/server/lib/rameses-common2.jar
+      - ../_res/lib/rameses-main-bootloader.jar:/apps/server/lib/rameses-main-bootloader.jar
+      - ../_res/lib/rameses-osiris3-core2.jar:/apps/server/lib/rameses-osiris3-core2.jar
+      - ../_res/lib/rameses-osiris3-server.jar:/apps/server/lib/rameses-osiris3-server.jar
