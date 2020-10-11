@@ -1,6 +1,8 @@
 #!/bin/sh
 RUN_DIR=`pwd`
 
+cd $RUN_DIR/cloud-proxy && docker-compose down
+
 cd $RUN_DIR/filipizen && docker-compose down
 
 cd $RUN_DIR/cloud-partner && docker-compose down

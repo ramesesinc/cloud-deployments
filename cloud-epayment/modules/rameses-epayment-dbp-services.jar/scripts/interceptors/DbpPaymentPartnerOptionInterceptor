@@ -27,6 +27,7 @@ class DbpPaymentPartnerOptionInterceptor {
 
 		def secval = partner.info?.terminalid + po.objid + '{' + partner.info?.transactionkey + '}'; 
 		params.securityToken = com.rameses.util.Encoder.SHA1.encode(secval);
+		println 'DBP getPaymentPartnerOption params => ' + params; 
 		partner.params = params; 
 	}
 
@@ -49,6 +50,9 @@ class DbpPaymentPartnerOptionInterceptor {
 		def requestToken = com.rameses.util.Encoder.SHA1.encode(secval);
 
 		def responseToken = com.rameses.util.Encoder.SHA1.encode(requestToken + '{' + partner.info?.transactionkey + '}'); 
+		println 'secval -> '+ secval; 
+		println 'responseToken -> ' + responseToken; 
+		println 'securityToken -> ' + params.securityToken; 
 		if(!responseToken.equals(params.securityToken)) {
 			throw new Exception("Security token mismatch. This is not a valid payment from DBP");
 		}
