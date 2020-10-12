@@ -15,7 +15,7 @@ services:
     environment:
       TZ: "Asia/Manila"
     volumes:
-      - ../_res:/apps/server/_res
+      - ../_custom:/apps/server/_res
       - ./assets:/apps/server/public/assets
       - ./connections:/apps/server/connections
       - ./client:/apps/server/client
