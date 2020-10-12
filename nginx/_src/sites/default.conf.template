@@ -2,6 +2,10 @@ server {
     listen       80;
     server_name  localhost;
 
+
+    ## 
+    ## main routing 
+    ## 
     location / {
         include conf.d/proxy.conf;
         proxy_pass http://${app_server_ip}:5000;
@@ -16,18 +20,6 @@ server {
         proxy_pass http://${app_server_ip}:5000;
     }
 
-
-    ## 
-    ## anubis routing 
-    ## 
-    location ~* ^/js-proxy/ {
-        include conf.d/proxy.conf;
-        proxy_pass http://${app_server_ip}:9080;
-    }     
-    location ~* ^/partners/(.*)/services/obo/ {
-        include conf.d/proxy.conf;
-        proxy_pass http://${app_server_ip}:9080;
-    }
 
     ## 
     ## cloud-gdx-node routing 

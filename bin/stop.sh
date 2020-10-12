@@ -3,7 +3,7 @@ RUN_DIR=`pwd`
 cd ..
 BASE_DIR=`pwd`
 
-cd $BASE_DIR/cloud-proxy && docker-compose down
+cd $BASE_DIR/nginx && docker-compose down
 
 cd $BASE_DIR/cloud-filipizen && docker-compose down
 

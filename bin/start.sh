@@ -15,4 +15,4 @@ cd $BASE_DIR/cloud-epayment && docker-compose up -d
 
 cd $BASE_DIR/cloud-obo && docker-compose up -d
 
-cd $BASE_DIR/cloud-proxy && docker-compose up -d
+cd $BASE_DIR/nginx && docker-compose up -d
