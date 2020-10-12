@@ -14,7 +14,7 @@ services:
     environment:
       TZ: "Asia/Manila"
     env_file:
-      - ../env.conf
+      - ../_res/env.conf
       - ../_custom/env.conf
     ports:
       - "9080:8080"

@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+  cloud-filipizen-server:
+    image: ramesesinc/cloud-filipizen-server:0.1.0
+    container_name: cloud-filipizen-server
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: 10m
+    ports:
+      - "5000:5000"
+    environment:
+      TZ: "Asia/Manila"
+    volumes:
+      - ../_res:/apps/server/_res
+      - ./assets:/apps/server/public/assets
+      - ./connections:/apps/server/connections
+      - ./client:/apps/server/client
