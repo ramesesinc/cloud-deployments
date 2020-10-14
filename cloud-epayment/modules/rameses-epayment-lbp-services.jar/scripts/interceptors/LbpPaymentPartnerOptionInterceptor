@@ -8,6 +8,13 @@ class LbpPaymentPartnerOptionInterceptor {
 	def formatter = new java.text.DecimalFormat('0.00');
 
 
+	@Before(pattern="CloudPaymentService.postPartnerPayment", eval="#{args[0].statusid == 'landbanksuccess' }")
+	public void beforePostPartnerPayment(evt) { 
+		def m = evt.args[0];
+		m.paypartnerid = 'LBP'; 
+		m.paymentrefid = m.MerchantRefNo; 
+	}
+
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'lbp' }")
 	public void buildPaymentPartnerOption(evt) { 
 		def po = evt.args[0].paymentorder; 
@@ -20,7 +27,7 @@ class LbpPaymentPartnerOptionInterceptor {
 		def params = [:];
 		params.MerchantCode = partner.info?.merchantcode; 
 		params.MerchantRefNo = po.objid; 
-		params.Particulars = "Transaction_type=${po.txntypename};Name of Payor=${po.paidby.replaceAll('&','and')};Tax Reference Number=${po.objid};Remarks=NA"; 
+		params.Particulars = "Transaction_type=${po.txntypename};Name of Payor=${po.paidby.replaceAll('&','and')};Tax Reference Number=${po.objid};Remarks=NA".toString(); 
 		params.Amount = samt;
 		params.PayorName = po.paidby;
 		params.PayorEmail = ( po.paidbyemail ? po.paidbyemail : '');
@@ -29,6 +36,7 @@ class LbpPaymentPartnerOptionInterceptor {
 
 		def secval = partner.info?.merchantcode + po.objid + samt.replace('.','');
     	params.Hash = com.rameses.util.Encoder.MD5.encode(secval).toLowerCase();
+		println 'LBP getPaymentPartnerOption params => ' + params; 
 		partner.params = params; 
 	}
 

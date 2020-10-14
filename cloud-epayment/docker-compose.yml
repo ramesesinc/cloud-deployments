@@ -3,7 +3,7 @@ version: "3"
 services:
 
   cloud-epayment-server:
-    image: "ramesesinc/cloud-epayment-server:v001"
+    image: "ramesesinc/cloud-epayment-server:v003"
     container_name: cloud-epayment-server
     restart: always
     logging: 
@@ -14,9 +14,9 @@ services:
     environment:
       TZ: "Asia/Manila"
     env_file:
-      - ../env.conf
+      - ../_res/env.conf
       - ../_custom/env.conf
     ports:
       - "9072:8070"
     volumes:
-     - ./modules:/apps/server/services/apps/enterprise/modules
+      - ./modules:/apps/enterprise/modules

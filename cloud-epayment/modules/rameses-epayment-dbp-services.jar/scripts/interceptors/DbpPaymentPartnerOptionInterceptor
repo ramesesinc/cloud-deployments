@@ -7,6 +7,13 @@ class DbpPaymentPartnerOptionInterceptor {
 
 	def formatter = new java.text.DecimalFormat('0.00');
 
+	@Before(pattern="CloudPaymentService.postPartnerPayment", eval="#{args[0].statusid == 'dbpsuccess' }")
+	public void beforePostPartnerPayment(evt) { 
+		def m = evt.args[0];
+		m.paypartnerid = 'DBP'; 
+		m.paymentrefid = m.referenceCode; 
+	}
+
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'dbp' }")
 	public void buildPaymentPartnerOption(evt) {
 		def po = evt.args[0].paymentorder;
@@ -14,12 +21,13 @@ class DbpPaymentPartnerOptionInterceptor {
 		def params = [:];
 		
 		params.terminalID = partner.info?.terminalid;
-		params.referenceCode = po.paymentrefid; 
+		params.referenceCode = po.objid; 
 		params.serviceType = po.particulars; 
 		params.amount = ( po.amount == null ? "" : formatter.format( po.amount )); 
 
-		def secval = partner.info?.terminalid + po.paymentrefid + '{' + partner.info?.transactionkey + '}'; 
+		def secval = partner.info?.terminalid + po.objid + '{' + partner.info?.transactionkey + '}'; 
 		params.securityToken = com.rameses.util.Encoder.SHA1.encode(secval);
+		println 'DBP getPaymentPartnerOption params => ' + params; 
 		partner.params = params; 
 	}
 
@@ -42,6 +50,9 @@ class DbpPaymentPartnerOptionInterceptor {
 		def requestToken = com.rameses.util.Encoder.SHA1.encode(secval);
 
 		def responseToken = com.rameses.util.Encoder.SHA1.encode(requestToken + '{' + partner.info?.transactionkey + '}'); 
+		println 'secval -> '+ secval; 
+		println 'responseToken -> ' + responseToken; 
+		println 'securityToken -> ' + params.securityToken; 
 		if(!responseToken.equals(params.securityToken)) {
 			throw new Exception("Security token mismatch. This is not a valid payment from DBP");
 		}

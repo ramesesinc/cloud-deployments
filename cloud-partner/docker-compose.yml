@@ -58,7 +58,7 @@ services:
 
 
   cloud-partner-server:
-    image: "ramesesinc/cloud-partner-server:v001"
+    image: "ramesesinc/cloud-partner-server:v003"
     container_name: cloud-partner-server
     logging: 
       driver: "json-file"
@@ -74,9 +74,9 @@ services:
     environment:
       TZ: "Asia/Manila"
     env_file:
-      - ../env.conf
+      - ../_res/env.conf
       - ../_custom/env.conf
     ports:
       - "9071:8070"
     volumes:
-      - ./modules:/apps/server/services/apps/enterprise/modules
+      - ./modules:/apps/enterprise/modules
