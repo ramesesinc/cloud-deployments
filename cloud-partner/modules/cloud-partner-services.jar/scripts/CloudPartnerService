@@ -19,8 +19,13 @@ class CloudPartnerService {
             def v = cache.get( 'partner:'+it.id );
             it.isonline = (v.toString()=='1')? '1' : '0';
         } 
-        println 'after partner.getList'; 
-        return list; 
+
+        try {
+            println 'about to return'; 
+            return list; 
+        } finally {
+            println 'after partner.getList'; 
+        }
     } 
 
     @ProxyMethod
