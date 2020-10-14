@@ -13,11 +13,14 @@ class CloudPartnerService {
    
     @ProxyMethod
     public def getList() {
+        println 'before partner.getList'
 		def list = partner.getList();
         list.each {
             def v = cache.get( 'partner:'+it.id );
             it.isonline = (v.toString()=='1')? '1' : '0';
         } 
+        println 'after partner.getList'; 
+        return list; 
     } 
 
     @ProxyMethod
