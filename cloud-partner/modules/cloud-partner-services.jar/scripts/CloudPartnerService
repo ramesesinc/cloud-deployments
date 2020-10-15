@@ -21,6 +21,7 @@ class CloudPartnerService {
         return list; 
     } 
 
+    // updated
     @ProxyMethod
     public def getActivePartners() {
         return getList().findAll{( it.state.toString().equalsIgnoreCase('ACTIVE') )} 
