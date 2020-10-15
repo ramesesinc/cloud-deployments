@@ -86,6 +86,7 @@ class CloudPaymentService {
 
 	@ProxyMethod
 	public def postPartnerPayment(params) {
+		println '\npostPartnerPayment -> '+ params;
 		if (!params.paypartnerid) throw new Exception("paypartnerid is required.");
 		if (!params.paymentrefid) throw new Exception("paymentrefid is required.");
 
