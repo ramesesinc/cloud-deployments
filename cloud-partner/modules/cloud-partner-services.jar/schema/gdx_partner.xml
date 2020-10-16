@@ -13,5 +13,8 @@
 		<field name="logo" />
 		<field name="includeservices" />
 		<field name="excludeservices" />
+		
+		<field name="email" />
+		<field name="phoneno" />
 	</element>
 </schema>
