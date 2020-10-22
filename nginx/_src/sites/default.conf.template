@@ -41,6 +41,14 @@ server {
 
 
     ## 
+    ## cloud-jasper routing 
+    ##     
+    location /jreports {
+        proxy_pass http://${app_server_ip}:5005;
+    }
+
+
+    ## 
     ## cloud-partner routing 
     ##     
     location /cloud-server/json/partner/ {

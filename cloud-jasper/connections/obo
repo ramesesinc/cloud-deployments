@@ -1,0 +1,6 @@
+provider=script
+app.host=172.30.0.135:10001
+app.cluster=osiris3
+app.context=enterprise
+readTimeout=60000
+debug=true
