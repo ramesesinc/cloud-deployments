@@ -1,8 +1,7 @@
 {
-	"app.host"	   : "${obo_server_ip}:10001", 
-	"app.cluster"	: "osiris3", 
-	"app.context"	: "enterprise", 
-	"handler"		    : "script", 
-	"readTimeout" 	: 60000
+	"app.host"	    : "${obo_server_ip}", 
+	"app.cluster"	: "cloud-server", 
+	"app.context"	: "obo", 
+	"handler"		: "script", 
+	"readTimeout" 	: 60000 
 }
-

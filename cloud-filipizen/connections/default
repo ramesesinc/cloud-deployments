@@ -2,6 +2,6 @@
 	"app.host"	    : "${app_server_ip}:9070", 
 	"app.cluster" 	: "osiris3", 
 	"app.context" 	: "gdx", 
-	"handler"		    : "script", 
+	"handler"		: "script", 
 	"readTimeout" 	: 60000
 }

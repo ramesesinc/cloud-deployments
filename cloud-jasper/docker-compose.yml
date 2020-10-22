@@ -23,6 +23,7 @@ services:
       - ./modules:/apps/enterprise/modules
       - ./templates:/apps/server/templates
       - ./output:/apps/server/output
+
       - ../_custom/reports:/apps/server/custom
 
 
@@ -45,3 +46,5 @@ services:
     volumes:
       - ./connections/node:/apps/server/connections
       - ./output:/apps/server/reports
+
+      - ../_custom/env.conf:/apps/server/_custom/env.conf
