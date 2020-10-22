@@ -44,6 +44,7 @@ server {
     ## cloud-jasper routing 
     ##     
     location /jreports {
+        include conf.d/proxy.conf;
         proxy_pass http://${app_server_ip}:5005;
     }
 
