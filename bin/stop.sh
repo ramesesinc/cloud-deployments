@@ -15,4 +15,6 @@ cd $BASE_DIR/cloud-epayment && docker-compose down
 
 cd $BASE_DIR/cloud-obo && docker-compose down
 
+cd $BASE_DIR/cloud-jasper && docker-compose down
+
 docker system prune -f
