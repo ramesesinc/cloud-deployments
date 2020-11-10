@@ -23,7 +23,7 @@ services:
       - ../_custom/datasources/partnerds:/services/datasources/mainds
 
       - ./_dev/connections:/apps/enterprise/connections
-      - ./_dev/lib/rameses-common2.jar:/apps/server/lib/rameses-common2.jar
-      - ./_dev/lib/rameses-main-bootloader.jar:/apps/server/lib/rameses-main-bootloader.jar
-      - ./_dev/lib/rameses-osiris3-core2.jar:/apps/server/lib/rameses-osiris3-core2.jar
-      - ./_dev/lib/rameses-osiris3-server.jar:/apps/server/lib/rameses-osiris3-server.jar
+      - ../_res/lib/rameses-common2.jar:/apps/server/lib/rameses-common2.jar
+      - ../_res/lib/rameses-main-bootloader.jar:/apps/server/lib/rameses-main-bootloader.jar
+      - ../_res/lib/rameses-osiris3-core2.jar:/apps/server/lib/rameses-osiris3-core2.jar
+      - ../_res/lib/rameses-osiris3-server.jar:/apps/server/lib/rameses-osiris3-server.jar
