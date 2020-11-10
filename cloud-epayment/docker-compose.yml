@@ -20,3 +20,4 @@ services:
       - "9072:8070"
     volumes:
       - ./modules:/apps/enterprise/modules
+      - ../_custom/datasources/epaymentds:/services/datasources/mainds
