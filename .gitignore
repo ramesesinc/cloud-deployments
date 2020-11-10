@@ -6,6 +6,7 @@
 .shutdown_pid
 Thumbs.db
 _custom
+/cloud-jasper/output
 /rabbitmq/data
 /redis-cache
 baks
