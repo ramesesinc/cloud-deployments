@@ -19,5 +19,6 @@ services:
       - "5005:5000"
     volumes:
       - ./connections:/apps/server/connections
+
+      - ../_custom/env.conf:/apps/server/_custom/env.conf
       - ../_custom/output:/apps/server/reports
-      
