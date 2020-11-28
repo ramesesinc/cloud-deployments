@@ -40,10 +40,13 @@ services:
       
       # - /home/rameses/RAMESES/modules/obo/cloud-server/cloud-obo-services.jar:/apps/server/services/apps/enterprise/modules/cloud-obo-services.jar
       # - /home/rameses/RAMESES/modules/jasper/server/jasper-report-services.jar:/apps/server/services/apps/enterprise/modules/jasper-report-services.jar
-      
-      - ./templates:/apps/server/templates
+
+      ## this is the original local templates mapping for final setup
+      ## - ./templates:/apps/server/templates
+
+      ## override the original template with the templates 
+      ## coming from the "obo-report-templates" repository
+      - ../../obo-report-templates/reports:/apps/server/templates/reports
+
       - ../_custom/reports/obo:/apps/server/templates/custom
       - ../_custom/output:/apps/server/output
-
-      ## override the target templates with obo-report-templates repo
-      - ../../obo-report-templates:/apps/server/templates
