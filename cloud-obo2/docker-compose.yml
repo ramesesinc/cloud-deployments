@@ -15,6 +15,7 @@ services:
       TZ: "Asia/Manila"
     env_file:
       - ./env.conf
+      - ../_custom/env.conf
     ports:
       - "10001:8070"
     volumes:
@@ -43,3 +44,6 @@ services:
       - ./templates:/apps/server/templates
       - ../_custom/reports/obo:/apps/server/templates/custom
       - ../_custom/output:/apps/server/output
+
+      ## override the target templates with obo-report-templates repo
+      - ../../obo-report-templates:/apps/server/templates
