@@ -1,28 +1,25 @@
 {
   "files": {
-    "main.css": "/static/css/main.6a1c888c.chunk.css",
-    "main.js": "/static/js/main.c6f908e0.chunk.js",
-    "runtime-main.js": "/static/js/runtime-main.f9cd4042.js",
-    "static/css/2.7d4a86c2.chunk.css": "/static/css/2.7d4a86c2.chunk.css",
-    "static/js/2.2861aede.chunk.js": "/static/js/2.2861aede.chunk.js",
-    "static/css/3.05b65a79.chunk.css": "/static/css/3.05b65a79.chunk.css",
-    "static/js/3.81df4c6f.chunk.js": "/static/js/3.81df4c6f.chunk.js",
-    "static/js/4.8925206a.chunk.js": "/static/js/4.8925206a.chunk.js",
-    "static/js/5.7dc08923.chunk.js": "/static/js/5.7dc08923.chunk.js",
-    "static/js/6.bc2f6ef2.chunk.js": "/static/js/6.bc2f6ef2.chunk.js",
-    "static/js/7.cab47efc.chunk.js": "/static/js/7.cab47efc.chunk.js",
+    "main.css": "/static/css/main.45f49326.chunk.css",
+    "main.js": "/static/js/main.8e6cc263.chunk.js",
+    "runtime-main.js": "/static/js/runtime-main.6fd4d097.js",
+    "static/css/2.af4f61a1.chunk.css": "/static/css/2.af4f61a1.chunk.css",
+    "static/js/2.038dd814.chunk.js": "/static/js/2.038dd814.chunk.js",
+    "static/js/3.4f0c7522.chunk.js": "/static/js/3.4f0c7522.chunk.js",
+    "static/js/4.3bf8908f.chunk.js": "/static/js/4.3bf8908f.chunk.js",
+    "static/js/5.60d39f51.chunk.js": "/static/js/5.60d39f51.chunk.js",
+    "static/js/6.80b56697.chunk.js": "/static/js/6.80b56697.chunk.js",
     "index.html": "/index.html",
-    "precache-manifest.02c5a9dd04d2fd078d7b60fb95890135.js": "/precache-manifest.02c5a9dd04d2fd078d7b60fb95890135.js",
+    "precache-manifest.78e5003a31017f8d4c51294bf6147218.js": "/precache-manifest.78e5003a31017f8d4c51294bf6147218.js",
     "service-worker.js": "/service-worker.js",
-    "static/js/2.2861aede.chunk.js.LICENSE.txt": "/static/js/2.2861aede.chunk.js.LICENSE.txt",
-    "static/js/3.81df4c6f.chunk.js.LICENSE.txt": "/static/js/3.81df4c6f.chunk.js.LICENSE.txt",
+    "static/js/2.038dd814.chunk.js.LICENSE.txt": "/static/js/2.038dd814.chunk.js.LICENSE.txt",
     "static/media/filipizen.svg": "/static/media/filipizen.5fd85b9e.svg"
   },
   "entrypoints": [
-    "static/js/runtime-main.f9cd4042.js",
-    "static/css/2.7d4a86c2.chunk.css",
-    "static/js/2.2861aede.chunk.js",
-    "static/css/main.6a1c888c.chunk.css",
-    "static/js/main.c6f908e0.chunk.js"
+    "static/js/runtime-main.6fd4d097.js",
+    "static/css/2.af4f61a1.chunk.css",
+    "static/js/2.038dd814.chunk.js",
+    "static/css/main.45f49326.chunk.css",
+    "static/js/main.8e6cc263.chunk.js"
   ]
 }
