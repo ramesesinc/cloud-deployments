@@ -73,6 +73,7 @@ public class OnlineOccupancyPermitService  {
 			def v = [:];
 			v.appid = app.objid;
 			v.name = it.objid;
+			v.type = [objid: it.objid, name: it.objid];
 			appInfoEm.create(v);
 		}
 		return app;
