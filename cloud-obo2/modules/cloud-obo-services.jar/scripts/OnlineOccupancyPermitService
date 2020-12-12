@@ -33,6 +33,9 @@ public class OnlineOccupancyPermitService  {
 	@DataContext("online_occupancy_permit_info")
 	def appInfoEm;
 
+	@DataContext("obo_permit_requirement")
+	def reqEm;
+
 	@ProxyMethod
 	public def create(def o) {
 		def kg = new KeyGen();
@@ -172,7 +175,6 @@ public class OnlineOccupancyPermitService  {
 
 	@ProxyMethod
 	public def saveAppInfos( o ) {
-		println 'o => ' + o;
 		if(!o.appid) throw new Exception("saveAppInfos error. appid is required");
 		o.infos.findAll{ it.value }.each {
 			def m = [:];
@@ -188,6 +190,12 @@ public class OnlineOccupancyPermitService  {
 			appInfoEm.update( m );
 		}
 		return o;
+	}
+
+	@ProxyMethod
+	public def getRequirements( def o ) {
+		if(!o.appid) throw new Exception("appid is required");
+		return reqEm.find( [apptype: "occupancy"]).orderBy("sortorder").list();
 	}
 
 	def formatAddress( def addr ) {
