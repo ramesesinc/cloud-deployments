@@ -17,11 +17,13 @@ public class OnlineOccupancyPermitDownloadService  {
 	//This is called by the local client
 	@ProxyMethod
 	public def getDownloadInfo(def parm) {
-		println "ENTERING DOWNLOAD SERVOCE"
 		def appid = parm.appid;
 
 		def app = appEm.find([objid: appid ] ).first();
 
+		if (!app) {
+			throw new Exception("Application does not exist");
+		}
 		if( parm.orgcode != app.orgcode ) {
 			throw new Exception("This application is not for this organization");
 		}	
@@ -32,6 +34,7 @@ public class OnlineOccupancyPermitDownloadService  {
 		app.entities = entityEm.find( [appid: appid ]).list();
 		app.trackingno = app.remove("objid");
 		app.infos = occupancySvc.getAppInfos([appid: appid]);
+		app.professionals = occupancySvc.getProfessionals([appid: appid]);
 		return app;
 	}
 
