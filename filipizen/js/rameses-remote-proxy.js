@@ -28,21 +28,22 @@ this.findServiceAsync = async function(name) {
     });
 };
 
-this.RemoteProxy = function(name, channel, module) {
+this.RemoteProxy = function(name, channel, connection, module) {
     this.name = name;
     this.channel = channel;
     this.module = module;
+    this.connection = connection;
     this.socket = io(CHANNEL);
     this.socket.connect();
-
+    
     this.invoke = async function( method, args, handler ) {
         let promise = new Promise((resolve, reject) => {
             let params = {
                 service: name,
                 method: method,
                 channel: channel,
+                connection: connection,
                 module: module,
-                connection: module,
                 args: args
             }
             this.socket.emit('invoke', params, (res) => {
@@ -158,7 +159,9 @@ this.Service = new function() {
         let serviceName = name;
         let channel = '';
         let module = this.module;
-        if(connection == null) connection = "default";
+        if(connection == null) {
+            connection = "default";
+        } 
         if( mod ) module = mod;
 
         if ( this.serviceCache[serviceName] == null ) {
@@ -169,7 +172,7 @@ this.Service = new function() {
                 const sinfo = findService(serviceName);
                 const service = {
                     name: serviceName,
-                    proxy: new RemoteProxy(serviceName, channel, module)
+                    proxy: new RemoteProxy(serviceName, channel, connection, module)
                 };
 
                 sinfo.methods.forEach(method => {
