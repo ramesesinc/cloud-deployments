@@ -21,10 +21,6 @@
   }
 
   def paths = REQUEST.pathInfo.split('/');
-  System.out.println("\n** paths "); 
-  paths.each{
-    System.out.println(">> "+ it ); 
-  }
   def ctxname = (paths.length > 1 ? ('/'+ paths[1]) : ''); 
 %>
 
