@@ -39,7 +39,7 @@
 
 		this.verifyEmail = function() {
 			var p = {email: self.contact.email, phoneno: self.contact.mobileno, txnid: 'buildingpermit_application' } 
-			var emailSvc = Service.lookup(app.orgcode+':VerifyEmailService', null, "epayment");
+			var emailSvc = Service.lookup(app.orgcode+':VerifyEmailService', "epayment");
 
 			return emailSvc.verifyEmail( p, function(s,o) {
 		      if( s.status == "ERROR" ) {
