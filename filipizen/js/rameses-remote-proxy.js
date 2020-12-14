@@ -34,7 +34,7 @@ this.RemoteProxy = function(name, channel, module) {
     this.module = module;
     this.socket = io(CHANNEL);
     this.socket.connect();
-    
+
     this.invoke = async function( method, args, handler ) {
         let promise = new Promise((resolve, reject) => {
             let params = {
@@ -42,6 +42,7 @@ this.RemoteProxy = function(name, channel, module) {
                 method: method,
                 channel: channel,
                 module: module,
+                connection: module,
                 args: args
             }
             this.socket.emit('invoke', params, (res) => {
