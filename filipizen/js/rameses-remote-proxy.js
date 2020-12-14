@@ -43,11 +43,11 @@ this.RemoteProxy = function(name, channel, connection, module) {
                 method: method,
                 channel: channel,
                 connection: connection,
-                module: module,
+                module: (module || connection),
                 args: args
             }
             this.socket.emit('invoke', params, (res) => {
-                console.log(`RemoteProxy [status] invoking ${params.service}.${params.method} channel: ${params.channel}`);
+                console.log(`RemoteProxy [status] invoking ${params.service}.${params.method} channel: ${params.channel} connection: ${params.connection} module: ${params.module}`);
                 if (res.status === 'OK') {
                     handler({status: res.status}, res.data);
                     resolve({status: res.status});
