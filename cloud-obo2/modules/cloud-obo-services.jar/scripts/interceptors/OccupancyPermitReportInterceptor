@@ -48,10 +48,15 @@ class OccupancyPermitReportInterceptor {
 			professionals << [
 				section: it.section.objid,
 				name: prof.firstname + (prof.middlename ? " " + prof.middlename + " " : " ")  + prof.lastname,
+				address: [text: prof.address.text],
 				prc: prof.prc,
 				ptr: prof.ptr,
+				tin: prof.tin,
 			]
 		}
 		return professionals;
 	}
+
+	
+
 }
