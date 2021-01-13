@@ -19,8 +19,12 @@ class BuildingPermitReportInterceptor {
 		} else {
 			app.lotowner = [:]; 
 		}
-		 
+		app.location.tdno = rpus*.tdno?.join(",");
+		app.location.tctno = rpus*.tctno?.join(",");		 
+		
 		app.applicant.middleinitial = (app.applicant.middlename ? app.applicant.middlename[0].toString() : '');
+
+		if(!app.worktypes) app.worktypes = [];
 
 		app.template = "reports/obo/" + reportid;
 		result.data = app;

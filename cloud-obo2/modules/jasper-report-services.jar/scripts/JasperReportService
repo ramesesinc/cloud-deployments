@@ -91,6 +91,7 @@ class JasperReportService  {
 			// --------------------------------------------------------
 			// get the main report name
 			// --------------------------------------------------------
+                     println 'template -> '+ template;
 			def srcFile = classLoader.getResource( template + ".jasper" );
 			def jr = JRLoader.loadObject( srcFile );
 			

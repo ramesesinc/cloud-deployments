@@ -17,7 +17,7 @@
 		<field name="address_province" required="true"/>
 		<field name="tin" />
 		<field name="email" required="true"/>
-		<field name="mobileno" required="true"/>
+		<field name="mobileno"/>
 		<field name="phoneno" />
 		<field name="id_idno" required="true"/>
 		<field name="id_type_name" required="true"/>
