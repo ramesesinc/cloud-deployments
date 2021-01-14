@@ -33,18 +33,30 @@ class CloudPaymentSupportService {
 	} 
 
 	@ProxyMethod 
-	public def notifyPayment( param ) { 
+	public def verifyPayment( param ) { 
 		if ( !param.controlno ) 
 			return [msg: "'controlno' parameter is required"]; 
 
-		def po = po_paid_db.find([ controlno: param.controlno ]).first();
+		def findby = [:]; 
+		if ( param.findBy ) { 
+			findby.putAll( param.findBy ); 
+		} 
+
+		findby.controlno = param.controlno; 
+
+		po_db.debug = true; 
+		po_paid_db.debug = true; 
+		po_cancelled_db.debug = true; 
+		paypartner_db.debug = true; 
+		
+		def po = po_paid_db.find( findby ).first();
 		if ( !po ) {
-			po = po_cancelled_db.find([ controlno: param.controlno ]).first();
+			po = po_cancelled_db.find( findby ).first();
 			if ( po ) {
 				return [msg: 'Payment Order is already cancelled']; 
 			}
 
-			po = po_db.find([ controlno: param.controlno ]).first();
+			po = po_db.find( findby ).first();
 			if ( po ) {
 				return [msg: 'Payment Order is still unpaid']; 
 			}
@@ -64,9 +76,17 @@ class CloudPaymentSupportService {
 		pay.orgcode	= po.orgcode; 
 		pay.refno = po.refno; 
 		pay.origin = po.origin; 
-		pay.txntypename = po.txntypename;
-		pay.action = "epayment:post-payment";
-		gdx.send( pay, po.orgcode ); 
+		pay.txntypename = po.txntypename; 
+		pay.action = "epayment:post-payment"; 
+		return pay; 		
+	}
+
+	@ProxyMethod 
+	public def notifyPayment( param ) { 
+		def pay = verifyPayment( param ); 
+		if ( pay?.msg ) return pay; 
+
+		gdx.send( pay, pay.orgcode ); 
 		return [msg: 'Successfully notified']; 
 	}
 
