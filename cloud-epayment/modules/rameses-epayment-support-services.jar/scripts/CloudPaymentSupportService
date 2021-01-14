@@ -153,6 +153,25 @@ class CloudPaymentSupportService {
 	} 
 
 
+	@ProxyMethod 
+	public def moveToCancelled( param ) { 
+		if ( !param.paymentrefid ) throw new Exception("'paymentrefid' parameter is required"); 
+
+		def findby = [ objid: param.paymentrefid ]; 
+		def po = po_cancelled_db.find( findby ).first(); 
+		if ( po?.objid ) return po; 
+
+		po = po_paid_db.find( findby ).select('objid').first(); 
+		if ( po?.objid ) return [msg: 'PAYMENT_ORDER_PAID']; 
+
+		po = po_db.find( findby ).first(); 
+		if ( !po?.objid ) return [msg: 'PAYMENT_ORDER_NOT_FOUND']; 
+
+		po_db.find( findby ).delete(); 
+		return po_cancelled_db.create( po ); 
+	} 
+
+
 	private def toNumber( value ) {
 		try {
 			if ( value instanceof String ) {
