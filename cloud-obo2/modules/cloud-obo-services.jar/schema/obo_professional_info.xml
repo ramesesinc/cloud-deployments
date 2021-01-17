@@ -21,7 +21,9 @@
 		<field name="mobileno"/>
 		<field name="phoneno" />
 		<field name="id_idno" required="true"/>
-		<field name="id_type_name" required="true"/>
+		<complex name="id_type" ref="idtype" jointype="many-to-one" required="false">
+			<key field="id_type_name" target="name"/>
+		</complex>	
 		<field name="id_dtissued"  type="date"  required="true"/>
 		<field name="id_placeissued" required="true"/>
 		<field name="profession" required="true"/>				
