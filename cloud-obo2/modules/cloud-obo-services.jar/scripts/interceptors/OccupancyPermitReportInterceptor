@@ -15,7 +15,8 @@ class OccupancyPermitReportInterceptor {
 		def app = oboReportSvc.getApplication([ appid: refid ]);
 		app.lotowner  = app.location?.owner;
 		app.applicant.middleinitial = (app.applicant.middlename ? app.applicant.middlename[0].toString() : '');
-
+		app.bldgpermit.location.text = formatAddress( app.bldgpermit.location );
+		app.qrcode = "qrcode:" + app.objid;
 		app.reportid = reportid;
 		app.template = "reports/obo/" + reportid;
 		result.data = app;
@@ -36,9 +37,20 @@ class OccupancyPermitReportInterceptor {
 		app.designprofessionals = getProfessionalData("designprofessional", professionals.findAll{ it.designprofessionalid != null})
 		app.supervisors = getProfessionalData("supervisor", professionals.findAll{ it.supervisorid != null})
 
+		app.bldgpermit.location.text = formatAddress( app.bldgpermit.location );
+
+		app.qrcode = "qrcode:" + app.objid;
 		app.reportid = reportid;
 		app.template = "reports/obo/" + reportid;
 		result.data = app;
+	}
+
+	def formatAddress( def addr ) {
+		def lst = [];
+		lst << [addr.unitno, addr.bldgno, addr.bldgname ].findAll{it!=null}.join(" ");
+		lst << [addr.street, addr.subdivision ].findAll{it!=null}.join(",");
+		lst << [addr.barangay?.name, addr.citymunicipality, addr.province ].findAll{it!=null}.join(",");
+		return lst.findAll{it}.join(",");		
 	}
 
 	def getProfessionalData(type, profList) {
@@ -46,7 +58,7 @@ class OccupancyPermitReportInterceptor {
 		profList.each{
 			def prof = (type == "designprofessional" ? it.designprofessional : it.supervisor);
 			professionals << [
-				section: it.section.objid,
+				section: it.section.title,
 				name: prof.firstname + (prof.middlename ? " " + prof.middlename + " " : " ")  + prof.lastname,
 				address: [text: prof.address.text],
 				prc: prof.prc,
