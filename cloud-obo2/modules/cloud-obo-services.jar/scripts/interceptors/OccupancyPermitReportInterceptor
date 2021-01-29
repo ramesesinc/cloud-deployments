@@ -34,8 +34,8 @@ class OccupancyPermitReportInterceptor {
 		app.applicant.middleinitial = (app.applicant.middlename ? app.applicant.middlename[0].toString() : '');
 
 		def professionals = oboReportSvc.getProfessionals([appid: refid]);
-		app.designprofessionals = getProfessionalData("designprofessional", professionals.findAll{ it.designprofessionalid != null})
-		app.supervisors = getProfessionalData("supervisor", professionals.findAll{ it.supervisorid != null})
+		app.designprofessionals = getProfessionalData("designprofessional", professionals)
+		app.supervisors = getProfessionalData("supervisor", professionals)
 
 		app.bldgpermit.location.text = formatAddress( app.bldgpermit.location );
 
@@ -54,19 +54,32 @@ class OccupancyPermitReportInterceptor {
 	}
 
 	def getProfessionalData(type, profList) {
+		def prof,title,role;
 		def professionals = []
-		profList.each{
-			def prof = (type == "designprofessional" ? it.designprofessional : it.supervisor);
-			professionals << [
-				section: it.section.title,
-				name: prof.firstname + (prof.middlename ? " " + prof.middlename + " " : " ")  + prof.lastname,
-				address: [text: prof.address.text],
-				prc: prof.prc,
-				ptr: prof.ptr,
-				tin: prof.tin,
-			]
+		profList.each {
+			if( type == "designprofessional") {
+				prof = it.designprofessional;
+				title = it.section.title;
+				role = it.section.designprofessionalrole;
+			}
+			else {
+				prof = it.supervisor;
+				title = it.section.title + " WORKS";
+				role = it.section.supervisorrole;
+			}
+			if(!role) return;
+			if( !prof?.objid ) prof = null;
+
+			def m = [section:title];
+			m.idx = it.section.idx;
+			m.name = (prof!=null) ? prof.firstname + (prof.middlename ? " " + prof.middlename + " " : " ")  + prof.lastname : null;
+			m.address = [text: prof?.address?.text];
+			m.prc = prof?.prc;
+			m.ptr = prof?.ptr;
+			m.tin = prof?.tin;
+			professionals << m;
 		}
-		return professionals;
+		return professionals.sort{ it.idx };
 	}
 
 	
