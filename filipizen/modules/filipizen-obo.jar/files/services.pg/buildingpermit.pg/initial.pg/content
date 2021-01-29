@@ -99,6 +99,10 @@
 </div>
 
 <div r:context="initial" r:visibleWhen="#{mode=='initial'}" style='display:none'>
+	<p style="background-color:lightyellow">
+	<b>Important Announcement.</b> We will be upgrading this website on Feb. 8, 2021. We recommend you complete the submission of your applications before this date. If not, you can still proceed with the application, but you will experience a significant design change. If you have questions or queries, please contact the Legazpi OBO Office. Thank you
+	</p>
+
 	<div class="subtitle">Select an action</div>
 	<div class="form">
 		<input type="radio" r:context="initial" r:name="menuOption" value="new"> Create New Application</input><br>	
