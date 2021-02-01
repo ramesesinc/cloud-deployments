@@ -39,7 +39,7 @@
 
 		this.verifyEmail = function() {
 			var p = {email: self.contact.email, phoneno: self.contact.mobileno, txnid: 'buildingpermit_application' } 
-			var emailSvc = Service.lookup(app.orgcode+':VerifyEmailService');
+			var emailSvc = Service.lookup(app.orgcode+':VerifyEmailService', "epayment");
 
 			return emailSvc.verifyEmail( p, function(s,o) {
 		      if( s.status == "ERROR" ) {
@@ -99,6 +99,10 @@
 </div>
 
 <div r:context="initial" r:visibleWhen="#{mode=='initial'}" style='display:none'>
+	<p style="background-color:lightyellow">
+	<b>Important Announcement.</b> We will be upgrading this website on Feb. 8, 2021. We recommend you complete the submission of your applications before this date. If not, you can still proceed with the application, but you will experience a significant design change. If you have questions or queries, please contact the Legazpi OBO Office. Thank you
+	</p>
+
 	<div class="subtitle">Select an action</div>
 	<div class="form">
 		<input type="radio" r:context="initial" r:name="menuOption" value="new"> Create New Application</input><br>	
