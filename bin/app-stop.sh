@@ -10,6 +10,6 @@ cd $BASE_DIR/cloud-partner && docker-compose down
 
 cd $BASE_DIR/cloud-epayment && docker-compose down
 
-cd $BASE_DIR/cloud-obo && docker-compose down
+cd $BASE_DIR/cloud-obo2 && docker-compose down
 
 cd $RUN_DIR

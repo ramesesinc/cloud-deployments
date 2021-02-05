@@ -20,14 +20,12 @@ cd $BASE_DIR/cloud-partner && docker-compose down
 
 cd $BASE_DIR/cloud-epayment && docker-compose down
 
-cd $BASE_DIR/cloud-obo && docker-compose down
+cd $BASE_DIR/cloud-obo2 && docker-compose down
 
 
 ## start the web app containers 
 cd $BASE_DIR/cloud-filipizen && docker-compose down
 
 cd $BASE_DIR/filipizen && docker-compose down
-
-docker system prune -f
 
 cd $RUN_DIR
