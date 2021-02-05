@@ -24,7 +24,7 @@ services:
       - ./templates:/apps/server/templates
       - ./output:/apps/server/output
 
-      - ../_custom/reports:/apps/server/custom
+      - ../_custom/jasper:/apps/server/custom
 
 
   jasper-node-server:

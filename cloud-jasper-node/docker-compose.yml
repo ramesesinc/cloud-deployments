@@ -13,8 +13,7 @@ services:
     environment:
       TZ: "Asia/Manila"
     env_file:
-      #- ../env.conf
-      - ../_custom/env.conf  
+      - ../_custom/env.conf
     ports:
       - "5005:5000"
     volumes:
