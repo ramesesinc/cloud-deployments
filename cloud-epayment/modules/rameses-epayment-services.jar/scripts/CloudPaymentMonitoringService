@@ -23,7 +23,9 @@ class CloudPaymentMonitoringService {
 				partner.paypartner[pp.name.toLowerCase()] = 0;
 			}
 		}
-		return [partners: partners, paypartners: paypartners]
+		def pdate = dtSvc.parseCurrentDate();
+		def period = "Month of " + getMonth(pdate.month) + ", " + pdate.year
+		return [partners: partners, paypartners: paypartners, period: period]
 	}
 
 	@ProxyMethod
@@ -66,6 +68,12 @@ class CloudPaymentMonitoringService {
 			partner.paypartner.each{k, v -> total += v}
 			partner.paypartner.total = total;
 		}
+	}
+
+	def getMonth(monthidx) {
+		def months = dtSvc.getMonths();
+		def month = months.find{ it.index == monthidx};
+		return month.caption;
 	}
 
 } 
