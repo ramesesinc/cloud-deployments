@@ -3,14 +3,6 @@ server {
     server_name  localhost;
 
     ## 
-    ## proxy to LandBank EPP Sandbox
-    ## 
-    location /epp/ {
-        proxy_pass https://222.127.109.48/epp20200915/;
-    }
-
-
-    ## 
     ## main routing 
     ## 
     location / {
