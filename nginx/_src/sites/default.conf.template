@@ -3,12 +3,21 @@ server {
     server_name  localhost;
 
     ## 
+    ## proxy to LandBank EPP Sandbox
+    ## 
+    location /epp/ {
+        proxy_pass https://222.127.109.48/epp20200915/;
+    }
+
+
+    ## 
     ## main routing 
     ## 
     location / {
         include conf.d/proxy.conf;
         proxy_pass http://${app_server_ip}:5000;
     }
+
 
     location ~* ^/payoptions {
         rewrite ^/(.*)$  /filipizen/$1 last;
