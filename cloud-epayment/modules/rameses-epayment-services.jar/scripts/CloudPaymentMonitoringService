@@ -23,16 +23,21 @@ class CloudPaymentMonitoringService {
 				partner.paypartner[pp.name.toLowerCase()] = 0;
 			}
 		}
-		def pdate = dtSvc.parseCurrentDate();
+		if (!params.month) return [partners: partners, paypartners: paypartners, period: ""]
+
+		def cy = dtSvc.serverYear
+		def month = params.month.idx.toString().padLeft(2, "0");
+		def pdate = dtSvc.parseDate(cy + '-' + month + '-01', null);
 		def period = "Month of " + getMonth(pdate.month) + ", " + pdate.year
 		return [partners: partners, paypartners: paypartners, period: period]
 	}
 
 	@ProxyMethod
 	public def getTxnCounts(params) {
-		def pdate = dtSvc.parseCurrentDate();
-		def month = pdate.month.toString().padLeft(2, '0');
-		params.fromdate = dtSvc.parse('yyyy-MM-dd', pdate.year+"-"+month+"-01");
+		def cy = dtSvc.serverYear
+		def month = params.month.idx.toString().padLeft(2, "0");
+		def pdate = dtSvc.parseDate(cy + '-' + month + '-01', null);
+		params.fromdate = pdate.date
 		params.todate = dtSvc.getMonthEndDate(params.fromdate) + 1;
 		def paypartners = em_paypartner.select('objid').where('1=1').list();
 		def txncounts = [];
@@ -62,12 +67,13 @@ class CloudPaymentMonitoringService {
 		return partners;
 	}
 
-	void calcTotals(partners) {
+	def calcTotals(partners) {
 		partners.each {partner ->
 			def total = 0;
 			partner.paypartner.each{k, v -> total += v}
 			partner.paypartner.total = total;
 		}
+		partners.sort{a, b -> (a.paypartner.total <=> b.paypartner.total) * (-1)}
 	}
 
 	def getMonth(monthidx) {
