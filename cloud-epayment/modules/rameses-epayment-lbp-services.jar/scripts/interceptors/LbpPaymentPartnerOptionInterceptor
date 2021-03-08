@@ -29,7 +29,14 @@ class LbpPaymentPartnerOptionInterceptor {
 		def params = [:];
 		params.MerchantCode = partner.info?.merchantcode; 
 		params.MerchantRefNo = po.objid; 
-		params.Particulars = "Transaction_type=${po.txntypename};Name of Payor=${paidbystr};Tax Reference Number=${po.objid};Remarks=NA".toString(); 
+
+		def parbuff = new StringBuilder(); 
+		parbuff.append("Transaction_type=${po.txntypename};Name of Payor=${paidbystr};Tax Reference Number=${po.objid};Remarks=NA");
+		if ( po.email ) { 
+			parbuff.append(";Email Address=${po.email}"); 
+		}
+
+		params.Particulars = parbuff.toString(); 
 
 		if ( partner.info?.particulars ) {
 			params.Particulars = evalExpr( partner.info.particulars, [ txntype: po.txntypename, paidby: paidbystr, refno: po.objid ]); 
@@ -37,7 +44,7 @@ class LbpPaymentPartnerOptionInterceptor {
 
 		params.Amount = samt;
 		params.PayorName = po.paidby;
-		params.PayorEmail = ( po.paidbyemail ? po.paidbyemail : '');
+		params.PayorEmail = ( po.email ? po.email : '');
 		params.ReturnURLOK = ( partner.info?.testsuccessurl ? partner.info?.testsuccessurl : partner.info?.successurl ); 
 		params.ReturnURLError = ( partner.info?.testerrorurl ? partner.info?.testerrorurl : partner.info?.errorurl ); 
 

@@ -10,6 +10,7 @@ server {
         proxy_pass http://${app_server_ip}:5000;
     }
 
+
     location ~* ^/payoptions {
         rewrite ^/(.*)$  /filipizen/$1 last;
     }
@@ -17,6 +18,17 @@ server {
     location ~* ^/filipizen/(epayment|payoptions|service|webhooks) {
         include conf.d/proxy.conf;
         proxy_pass http://${app_server_ip}:5000;
+    }
+
+
+    #=========================================================
+    #
+    # PAYMAYA webhooks handler
+    #
+    #=========================================================
+    location /paymaya {
+        include conf.d/proxy.conf;
+        proxy_pass http://${app_server_ip}:5000/filipizen/paymaya;
     }
 
 
