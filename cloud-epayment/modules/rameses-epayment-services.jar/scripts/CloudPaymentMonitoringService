@@ -80,6 +80,8 @@ class CloudPaymentMonitoringService {
 	}
 
 	void buildPeriodFilters(params) {
+		if (!params.month) return;
+
 		def currdate = dtSvc.parseCurrentDate()
 		if (params.year) {
 			params.year = toInt(params.year)
