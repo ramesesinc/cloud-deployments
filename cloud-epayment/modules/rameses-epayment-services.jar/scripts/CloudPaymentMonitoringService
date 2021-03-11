@@ -25,7 +25,12 @@ class CloudPaymentMonitoringService {
 		}
 
 		buildPeriodFilters(params)
-		return [partners: partners, paypartners: paypartners, period: params.period]
+		return [
+			partners: partners, 
+			paypartners: paypartners, 
+			period: params.period,
+			years: getYears()
+		]
 	}
 
 	@ProxyMethod
@@ -83,22 +88,21 @@ class CloudPaymentMonitoringService {
 		}
 
 		params.period = ""
-		if (params.month) {
+		if (params.month.idx != 0) {
 			def month = params.month.idx.toString().padLeft(2, "0");
 			def pdate = dtSvc.parseDate(params.year + '-' + month + '-01', null);
 			params.period = "Month of " + getMonth(pdate.month) + ", " + pdate.year
 			params.fromdate = pdate.date
 			params.todate = dtSvc.getMonthEndDate(params.fromdate) + 1;
 		} else if (params.year == currdate.year) {
-			params.period = 'AS OF ' + dtSvc.format('MMMMM dd, yyyy', currdate.date)
+			params.period = 'As of ' + dtSvc.format('MMMMM dd, yyyy', currdate.date)
 			params.fromdate = dtSvc.parseDate(params.year + '-01-01', null).date;
 			params.todate = currdate.date
 		} else {
-			params.period = 'FOR THE YEAR ' + params.year
+			params.period = 'For the year ' + params.year
 			params.fromdate = dtSvc.parseDate(params.year + '-01-01', null).date;
 			params.todate = dtSvc.parseDate((params.year+1) + '-01-01', null).date;
 		}
-		println 'PARAMS: ' + params
 	}
 
 	def toInt(val) {
@@ -108,5 +112,18 @@ class CloudPaymentMonitoringService {
 		} catch( e ) {
 			throw new Exception('Invalid year');
 		}
+	}
+
+	def getYears() {
+		def yr = em.findYearRange();
+		def years = []
+		if (yr.minyear == yr.maxyear) {
+			years << yr.minyear
+		} else {
+			yr.minyear.upto(yr.maxyear) {
+				years << it	
+			}	
+		}
+		return years 
 	}
 } 
