@@ -8,28 +8,35 @@ class CloudPaymentMonitoringService {
 	@DataContext('payment_partner')
 	def em_paypartner;
 
+	@Service(value='CloudPartnerService', connection='partner')
+	def partnerSvc;
+
 	@Service('DateService')
 	def dtSvc;
 
 
 	@ProxyMethod
 	public def getInitialInfo(params) {
+		def lgus = partnerSvc.getList();
 		def paypartners = em_paypartner.select('name:{objid}').where('1=1').list();
 		paypartners << [name: 'TOTAL'];
-		def partners = em.getPartners();
+		def partners = em.getPartners().findAll{it.id != '000'};
 		partners.each{  partner ->
 			partner.paypartner = [:] 
 			paypartners.each{ pp -> 
 				partner.paypartner[pp.name.toLowerCase()] = 0;
 			}
+			def lgu = lgus.find{it.id == partner.id}
+			if (lgu) partner.name = lgu.name
 		}
-
 		buildPeriodFilters(params)
+		def years = getYears()
 		return [
 			partners: partners, 
 			paypartners: paypartners, 
 			period: params.period,
-			years: getYears()
+			years: years,
+			year: years ? years.last() : dtSvc.serverYear,
 		]
 	}
 
@@ -61,6 +68,8 @@ class CloudPaymentMonitoringService {
 			}
 		}
 		calcTotals(partners);
+		partners = sortPartnersByTxnCounts(partners);
+		partners << getTotalRow(partners, params)
 		return partners;
 	}
 
@@ -127,5 +136,36 @@ class CloudPaymentMonitoringService {
 			}	
 		}
 		return years 
+	}
+
+	def sortPartnersByTxnCounts(partners) {
+		def p1 = partners.findAll{ it.paypartner.total > 0}
+		def p2 = partners.findAll{ it.paypartner.total == 0}
+		p1.sort{a, b -> 
+			if (a.paypartner.total < b.paypartner.total) return 1;
+			if (a.paypartner.total > b.paypartner.total) return -1;
+			return 0;
+		}
+		p2.sort{a, b ->
+			if (a.name < b.name) return -1;
+          	if (a.name > b.name) return 1;
+          	return 0;
+		}
+		return p1 + p2;
+	}
+
+	def getTotalRow(partners, params) {
+		def total = [
+			id : 'total',
+			name: 'TOTAL',
+			paypartner: [total: 0]
+		]
+
+		def paypartners = em.getTotalTxnCounts(params)
+		paypartners.each{cnt -> 
+			total.paypartner[cnt.paypartnerid.toLowerCase()] = cnt.txncount;
+			total.paypartner.total += cnt.txncount;
+		}
+		return total;
 	}
 } 
