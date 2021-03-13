@@ -20,6 +20,7 @@ services:
       - "9072:8070"
     volumes:
       - ./modules:/apps/enterprise/modules
+      - ../_res/connections:/apps/enterprise/connections/ext
       - ../_custom/datasources/epaymentds:/services/datasources/mainds
 
       - ../_res/lib/rameses-common2.jar:/apps/server/lib/rameses-common2.jar
