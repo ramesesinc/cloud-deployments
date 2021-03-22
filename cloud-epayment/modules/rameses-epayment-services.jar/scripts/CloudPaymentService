@@ -67,7 +67,11 @@ class CloudPaymentService {
 	@ProxyMethod
 	public def getPayPartner(def params)  {
 		def po = getPaymentOrder(params)
-		def p = [paymentorder: po, payoption: params.payoption]
+		def p = [
+			paymentorder: po, 
+			payoption: params.payoption, 
+			checkout: params.checkout,
+		]
 		def payoption = self.getPaymentPartnerOption(p);
 
 		def formaction = payoption.paypartner?.info?.testactionurl; 
