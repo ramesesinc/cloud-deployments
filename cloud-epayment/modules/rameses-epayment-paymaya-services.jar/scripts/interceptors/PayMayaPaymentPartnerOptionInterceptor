@@ -126,9 +126,11 @@ class PayMayaPaymentPartnerOptionInterceptor {
 	}
 
 	def getPaymentDetail(partner, args) {
-		def po = em_po.select("checkoutid,checkouttype").find([ objid: args.paymentrefid ]).first()
-		def option = partner.info[po.checkouttype]
-		def urlPath = option.actionurl + "/" + po.checkoutid
+		def po = em_po.select("checkoutid,checkouttype").find([ objid: args.paymentrefid ]).first();
+		if ( po ) {
+			def option = partner.info[po.checkouttype]
+			def urlPath = option.actionurl + "/" + po.checkoutid
+		}
 		return [requestReferenceNumber: args.paymentrefid];
 	}
 
