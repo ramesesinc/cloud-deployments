@@ -118,8 +118,14 @@ class CloudPaymentService {
 		if ( !parms.paypartnerid ) throw new Exception("paypartnerid is required in postPayment"); 
 		if ( !parms.paymentrefid ) throw new Exception("paymentrefid is required in postPayment"); 
 
+		// initiate record locking 
+		def lockid = new java.rmi.server.UID().toString(); 
+		po_db.updateLock([ objid: parms.paymentrefid, lockid: lockid ]); 
+
 		def po = po_db.find([ objid: parms.paymentrefid ]).first(); 
 		if ( po == null ) { 
+			po_paid_db.updateLock([ objid: parms.paymentrefid, lockid: lockid ]); 
+
 			// since pending PO is not found 
 			// we will verify the payment record 
 			def ppmt = pay_db.find([ paymentrefid: parms.paymentrefid, paypartnerid: parms.paypartnerid ]).first(); 
@@ -176,7 +182,7 @@ class CloudPaymentService {
 		//we use partnerid to refer to pay partner so as not to disrupt existing code in the lgu.
 		def pay = pay_db.create( pmt );
 
-		pay.txntype = po.txntype
+		pay.txntype = po.txntype;
 		pay.orgcode	= orgcode; 
 		pay.partnerid = payPartner.objid; 
 		pay.partnercode = payPartner.code;
