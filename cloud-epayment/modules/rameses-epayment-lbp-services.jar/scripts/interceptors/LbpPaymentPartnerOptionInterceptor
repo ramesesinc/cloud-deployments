@@ -4,14 +4,24 @@ import com.rameses.annotations.*;
 // Landbank services
 //***********************
 class LbpPaymentPartnerOptionInterceptor {
+
+	final String PAY_PARTNER_ID = "LBP";
 	
+
+	@Service('CloudPaymentService')
+	def cloudPaymentSvc; 
+
+	@Service('DateService')
+	def dateSvc; 
+
+
 	def formatter = new java.text.DecimalFormat('0.00');
 
 
 	@Before(pattern="CloudPaymentService.postPartnerPayment", eval="#{args[0].statusid == 'landbanksuccess' }")
 	public void beforePostPartnerPayment(evt) { 
 		def m = evt.args[0];
-		m.paypartnerid = 'LBP'; 
+		m.paypartnerid = PAY_PARTNER_ID; 
 		m.paymentrefid = m.MerchantRefNo; 
 	}
 
@@ -59,7 +69,7 @@ class LbpPaymentPartnerOptionInterceptor {
 		def params = evt.args[0]; 
 		def pmt = evt.result;
 
-		pmt.paypartnerid = 'LBP'; 
+		pmt.paypartnerid = PAY_PARTNER_ID;
 		pmt.traceid = params.EppRefNo;
 		pmt.tracedate = params.Datestamp;
 		pmt.amount = params.Amount;
@@ -69,6 +79,28 @@ class LbpPaymentPartnerOptionInterceptor {
 			pmt.paymentrefid = particulars['Tax Reference Number'];
 		}
 	} 	
+
+	@After(pattern="CloudPaymentService.postPartnerWebhook", eval="#{args[0]?.paypartnerid.toString().toLowerCase() == 'lbp'}") 
+	public void afterPostPartnerWebhook(evt) { 
+		def result = evt.result;
+		def param = evt.args[0];
+		def data = param.data;
+
+		println '\n** afterPostPartnerWebhook'
+		param.each{
+			println '> '+ it; 
+		}
+
+		data.paypartnerid = PAY_PARTNER_ID;
+		data.paymentrefid = data.EppRefNo;
+		if ( !data.Datestamp ) { 
+			data.Datestamp = dateSvc.getServerDate(); 
+		}
+
+		cloudPaymentSvc.postPartnerPayment( data ); 
+		println 'WEBHOOK [INFO] post partner payment completed.'; 
+	}
+
 
 	def splitParticulars( value ) { 
 		if ( value == null || value.toString().trim().length() == 0 ) return null;
