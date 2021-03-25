@@ -118,8 +118,20 @@ class CloudPaymentService {
 		if ( !parms.paypartnerid ) throw new Exception("paypartnerid is required in postPayment"); 
 		if ( !parms.paymentrefid ) throw new Exception("paymentrefid is required in postPayment"); 
 
-		po_db.debug = true;
 		def po = po_db.find([ objid: parms.paymentrefid ]).first(); 
+		if ( po == null ) { 
+			// since pending PO is not found 
+			// we will verify the payment record 
+			def ppmt = pay_db.find([ paymentrefid: parms.paymentrefid, paypartnerid: parms.paypartnerid ]).first(); 
+			if ( ppmt?.objid ) {
+				// PO is already paid
+				ppmt.partner = [ objid: ppmt.paypartnerid ]; 
+				ppmt.info = po_paid_db.find([ objid: ppmt.paymentrefid ]).first(); 
+				return ppmt; 
+			} 
+		}
+
+
 		println '\n** po '
 		po.each{
 			println '> '+ it; 
