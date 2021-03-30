@@ -60,7 +60,7 @@ class LbpPaymentPartnerOptionInterceptor {
 
 		def secval = partner.info?.merchantcode + po.objid + samt.replace('.','');
     	params.Hash = com.rameses.util.Encoder.MD5.encode(secval).toLowerCase();
-		println 'LBP getPaymentPartnerOption params => ' + params; 
+		log('getPaymentPartnerOption params => ' + params); 
 		partner.params = params; 
 	}
 
@@ -86,19 +86,19 @@ class LbpPaymentPartnerOptionInterceptor {
 		def param = evt.args[0];
 		def data = param.data;
 
-		println '\n** afterPostPartnerWebhook'
+		log('afterPostPartnerWebhook');
 		param.each{
 			println '> '+ it; 
 		}
 
 		data.paypartnerid = PAY_PARTNER_ID;
-		data.paymentrefid = data.EppRefNo;
+		data.paymentrefid = data.MerchantRefNo;
 		if ( !data.Datestamp ) { 
 			data.Datestamp = dateSvc.getServerDate(); 
-		}
+		} 
 
 		cloudPaymentSvc.postPartnerPayment( data ); 
-		println 'WEBHOOK [INFO] post partner payment completed.'; 
+		log('WEBHOOK [INFO] post partner payment completed.');
 	}
 
 
@@ -115,9 +115,13 @@ class LbpPaymentPartnerOptionInterceptor {
 		return data;
 	}
 
-	String evalExpr( str, data ) {
-		def engine = new groovy.text.SimpleTemplateEngine()
+	String evalExpr( str, data ) { 
+		def engine = new groovy.text.SimpleTemplateEngine(); 
 		def template = engine.createTemplate( str ).make( data ); 
 		return template.toString(); 
 	} 
+
+	void log( msg ) {
+		println (''+ PAY_PARTNER_ID +': '+ msg);
+	}
 }
