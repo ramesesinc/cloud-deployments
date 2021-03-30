@@ -97,8 +97,13 @@ class LbpPaymentPartnerOptionInterceptor {
 			data.Datestamp = dateSvc.getServerDate(); 
 		} 
 
-		cloudPaymentSvc.postPartnerPayment( data ); 
-		log('WEBHOOK [INFO] post partner payment completed.');
+		data = cloudPaymentSvc.postPartnerPayment( data ); 
+		if ( data?.reposted.toString().matches('true|1')) {
+			log('WEBHOOK [INFO] payment reposted.');	
+		} 
+		else {
+			log('WEBHOOK [INFO] post partner payment completed.'); 
+		}
 	}
 
 

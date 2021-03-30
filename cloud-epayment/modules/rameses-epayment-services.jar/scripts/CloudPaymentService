@@ -148,6 +148,7 @@ class CloudPaymentService {
 				ppmt.txntypename = po.txntypename; 
 
 				ppmt.action = "epayment:post-payment";
+				ppmt.reposted = true; 
 				return ppmt; 
 			} 
 		}
