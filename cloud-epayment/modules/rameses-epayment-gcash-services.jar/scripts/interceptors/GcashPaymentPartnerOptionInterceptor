@@ -1,0 +1,249 @@
+import com.rameses.annotations.*
+import com.rameses.services.extended.*
+import com.rameses.osiris3.server.JsonUtil
+import com.rameses.http.BasicHttpClient
+
+//***********************
+// GCash services
+//***********************
+class GcashPaymentPartnerOptionInterceptor {
+
+	@Service('DateService')
+	def dtSvc
+
+	@Service('NumberService')
+	def numSvc
+
+	@Service('GCashSignatureService')
+	def signSvc
+
+	@DataContext('gcash_log')
+	def em_log
+
+	@DataContext('paymentorder')
+	def em_po
+
+	@DataContext('paymentorder_paid')
+	def em_po_paid
+
+	@DataContext('payment_partner')
+	def em_paymentpartner;
+
+	@Service('CloudPaymentService')
+	def svc;
+
+
+	@Before(pattern="CloudPaymentService.postPartnerPayment", eval="#{args[0].statusid == 'gcashsuccess' }")
+	public void beforePostPartnerPayment(evt) { 
+		def args = evt.args[0];
+
+		println 'beforePostPartnerPayment ========================='
+
+		def partner = em_paymentpartner.find([objid: 'GCASH']).first();
+
+		def pmt = getPaymentDetail(partner, args)
+		args.paypartnerid = partner.objid; 
+		args.paymentrefid = pmt.requestReferenceNumber; 
+	}
+	
+	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'gcash' }")
+	public void buildPaymentPartnerOption(evt) { 
+		def po = evt.args[0].paymentorder
+		def checkout = evt.args[0].checkout
+		def partner = evt.result.paypartner
+
+		println 'buildPaymentPartnerOption==========================='
+		partner.each{k,v -> println '  -> ' + k + ' = ' + v}
+
+		def params = [ request: [:] ]
+
+		params.request.head = partner.info.wallet.head
+		params.request.head.reqTime = formatCurrentTime(po)
+		params.request.head.reqMsgId = createGcashLog(po)
+
+		params.request.body = partner.info.wallet.body
+		params.request.body.notificationUrls = getNotificationUrls(partner, po)
+		params.request.body.order = getOrder(partner, po, checkout)
+
+		params.signature = signSvc.getSignature(params.request)
+
+		partner.params = params 
+		checkOut(partner, po, checkout)
+	}
+
+	@After( pattern="CloudPaymentService.getPostPaymentParams", eval="#{args[0]?.paypartnerid.toString().toLowerCase() == 'gcash'}") 
+	public void buildPostPaymentParams( evt ) {
+		def params = evt.args[0] 
+		def pmt = evt.result
+		def paypartner = pmt.paypartner
+		def po = em_po.find([ objid: params.paymentrefid ]).first(); 
+
+		pmt.paypartnerid = paypartner.objid
+		pmt.traceid = po.checkoutid
+		pmt.tracedate = po.txndate
+		pmt.amount = po.amount
+		pmt.paymentrefid = params.paymentrefid
+	} 	
+
+	@After(pattern="CloudPaymentService.postPartnerWebhook", eval="#{args[0].paypartnerid.equalsIgnoreCase('gcash')}")
+	public void afterPostPartnerWebhook(evt) { 
+		def args = evt.args[0];
+		def result = evt.result;
+		def checkout = args.data;
+
+		println 'afterPostPartnerWebhook ================================';
+		println 'args ****'
+		args.each{k, v -> println '  -> ' + k + ': ' + v }
+
+		println 'checkout ****\n'
+		checkout.each{k, v -> println '  -> ' + k + ': ' + v }
+
+		println 'result ****\n'
+		result.each{k, v -> println '  -> ' + k + ': ' + v }
+
+		def paymentorderid = checkout.requestReferenceNumber;
+
+		def respose = [:]
+		response.head = [:]
+		response.head = partner.info.head
+		response.head.function = 'gcash.acquiring.order.finish.notify'
+		response.head.respTime = formatCurrentTime(dtSvc.serverDate)
+		response.head.reqMsgId = createGcashLog(po)
+
+		response.body = [:]
+		response.body.merchantId = checkout.request.body.merchantId;
+		response.body.merchantTransId = checkout.request.body.merchantTransId;
+		response.body.resultInfo = [
+			resultStatus: 'S',
+			resultCodeId: '00000',
+			resultCode: 'SUCCESS',
+			resultMsg: 'SUCCESS',
+		];
+
+		result.status = 200;
+		result.response = [
+			response: response,
+			signature: signSvc.getSignature(response),
+		];
+		
+
+
+
+		// // unsuccessful payment, log and return 200
+		// if (checkout.paymentStatus != "PAYMENT_SUCCESS") {
+		// 	result.status = 200;
+		// 	println 'WEBHOOK [INFO] unsuccessful payment: ' + paymentorderid + ': ' + checkout.paymentStatus;
+		// 	return;
+		// }
+
+		// //is po paid 
+		// def paidpo = em_po_paid.find([objid: paymentorderid]).first();
+		// if (paidpo) {
+		// 	result.status = 200;
+		// 	println 'WEBHOOK [INFO] transaction already posted'
+		// 	return;
+		// };
+
+		// //is valid po
+		// def po = em_po.find([objid: paymentorderid]).first();
+		// if (po) {
+		// 	def params = [:]
+		// 	params.statusid = 'paymayasuccess';
+		// 	params.paymentrefid = checkout.requestReferenceNumber;
+		// 	params.paypartnerid = 'PAYMAYA';
+		// 	svc.postPartnerPayment(params);
+		// 	println 'WEBHOOK [INFO] post partner payment completed.'
+		// } else {
+		// 	//invalid po
+		// 	result.status = 200;
+		// 	println 'WEBHOOK [INFO] invalid transaction'
+		// }
+	}
+
+	def getPaymentDetail(partner, args) {
+		def po = em_po.select("checkoutid,checkouttype").find([ objid: args.paymentrefid ]).first();
+		if ( po ) {
+			def option = partner.info[po.checkouttype]
+			def urlPath = option.actionurl + "/" + po.checkoutid
+		}
+		return [requestReferenceNumber: args.paymentrefid];
+	}
+
+	void checkOut(partner, po, checkout) {
+		println 'checkOut ========================'
+		def option = partner.info.wallet
+		def urlPath = option.actionurl
+		def jsonData = JsonUtil.toString(partner.params)
+
+		println 'option **** '
+		option.each{k,v -> println '  => ' + k + ' = ' + v}
+
+		println 'urlpath => ' + urlPath;
+		println 'jsonData => ' + jsonData;
+
+		System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2"); 
+
+		def http = new BasicHttpClient()
+		def retval = http.post(urlPath, jsonData, option.headerpost)
+		if (retval.responsecode == 200) {
+			partner.checkout = JsonUtil.toMap(retval.data)
+			println 'checkout data ***'
+			partner.checkout.each{k, v -> println '  -> ' + k + ' : ' + v}
+
+			signSvc.validateCheckout(partner)
+
+			em_po.find([objid: po.objid]).update([checkoutid: partner.checkout.response.body.transactionId, checkouttype: checkout.type])
+		} else {
+			partner.error = JsonUtil.toMap(retval.error)
+			partner.error.errormsg = partner.error.error
+			println 'ERROR => ' + partner.error
+		}
+	}
+
+	// ISO 8601 FORMAT:  2021-04-16T01:49:15+00:00
+	def formatCurrentTime(po) {
+		return String.format('%1$tY-%1$tm-%1$tdT%1$tH:%1$tM:%1$tS+08:00', po.txndate);
+	}
+
+	def createGcashLog(po) {
+		return em_log.create([poid: po.objid]).objid
+	}
+
+	def getOrder(partner, po, checkout) {
+		def order = [:]
+		
+		order.seller = [:]
+		order.seller.userId = ''
+		order.seller.externalUserId = partner.objid
+		order.seller.externalUserType = partner.partnerid
+
+		order.buyer = [:]
+		order.buyer.userId = ''
+		order.buyer.externalUserId = 'FILIPIZEN'
+		order.buyer.externalUserType = 'FILIPIZEN'
+
+		order.orderTitle = po.particulars
+		order.orderAmount = ['currency': 'PHP', value: convertAsCentsFormat(po.amount)]
+		order.merchantTransId = po.objid
+
+		println 'amount => ' + order.orderAmount
+		return order
+	}
+
+	public def convertAsCentsFormat(amount) {
+ 		return numSvc.roundA(amount * 100, 0).toString();
+	}
+
+	def getNotificationUrls(partner, po) {
+		def success = (partner.info?.testsuccessurl ? partner.info?.testsuccessurl : partner.info?.successurl) + '?paymentrefid=' + po.objid
+		def failure = (partner.info?.testerrorurl ? partner.info?.testerrorurl : partner.info?.errorurl) + '?paymentrefid=' + po.objid
+		def notification = (partner.info?.testnotificationurl ? partner.info?.testnotificationurl : partner.info?.notificationurl) + '?paymentrefid=' + po.objid
+		return [
+			[url: success, type: 'PAY_RETURN'],
+			[url: failure, type: 'CANCEL_RETURN'],
+			[url: notification, type: 'NOTIFICATION'],
+		]
+	}
+
+
+}

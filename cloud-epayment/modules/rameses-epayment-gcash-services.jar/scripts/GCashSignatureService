@@ -1,0 +1,133 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.osiris3.server.JsonUtil
+
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.HashMap;
+import java.util.Map;
+import javax.crypto.Cipher;
+import org.apache.commons.net.util.Base64;
+
+class GCashSignatureService {
+
+	def RSI_PRIVATE_KEY = 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7pRZ1+QBUidvz' \
+        + 'JyIx8KOzKVe+gp76bQceCvw6xv0eOjuhzsSjiYbkG5GZ/oonXJyLnwvl8Ops7sVt'  \
+        + 'pchRaJNTUbxTDo4raYFblFyDLFslc/lMAQ7H1Uf0SMLt5vjwMjx42jvTQFpeRyWg' \
+        + 'cMSqiNXUtfnGRz/sHrbfY/m4lNAkTb1bjk2Fg0VZ3YdTD3AxdO8PXTPXj8RH0wxV' \
+        + '0nf2fMDfeazklauHTSexpGkPKLfupkXTyYRRBF3MmTqc43t2Y6xjZN3QDMJbk/M/' \
+        + 'xYvcUGr0kDc3tibIYKkEQLAMz2qKezaD0+JbozrS6VxEYLmB7JwnbXIhxBt6CtTv' \
+        + 'neNJ97o5AgMBAAECggEAZhNZU5W/wz03RF+eb3JLatPronwmBW6393TcXxEOcpoV' \
+        + 'BGGZgKj4kzAYFaBtARqVIjLD4zMaI2YESjBr9zUfJ60H+Fqrphv/vZTIeqbvckFT' \
+        + 'dTACHVz9hnrqZ0ZFV0zMrqVw8+tG/ZBQfKW7plVHlS3lESKDOGxA6ObW2r1BOO2O' \
+        + 'lFPka2mEKj12Bb2LMEhiuyzSz5zH2IseQYlVakscMEyl93BCm+Njeq7SjAR4tqqX' \
+        + 'JUVvxthrn8dtmREas2h2/vkcTX9hvEO4ZvzJXudV+PciElUt4EMTfyDs1oDKTnBG' \
+        + 'I0D3OHPI9geq+oWFfH+/fa85xhxiU/HyCyaYTKsF3QKBgQDkQvXrkzlVVuZAnxlR' \
+        + 'jjcdyRogPdze5HnYtRjcCLy3AYx6Di+lrdt5gDMuLOewtmNTSMg055WIncG9gIuJ' \
+        + 'zrTJD04cn6FEOkkNIfPbitFtLios2ScyOvWxBXTr+QOREz/kP7ErfFoFaIP7fk7y' \
+        + 'gulWZD+37k2SgdD+nruDFFJz9wKBgQDScpLRwVwdcEfgv+YdRkpBH+Q0dqNlkaDj' \
+        + 'Zmul+FStExuxHflvgz8lpNsdheGMTJSuBofrcmv6h0slW9SYiAeCdRVjaWTe0i+6' \
+        + 'u46EhnwXV+h04LFg0CJhaf50dFJ/IW6ozfCs94yygyhmNUnAQq6nqUtNLHXvlkWO' \
+        + 'Ys2DOItXTwKBgEQKDaHFxa5Bc+rJQdPEj3tKaYY4ynCKLCPDf4B+/jmStZvgRKWf' \
+        + 'GC+0Xg0ih4FuLFcz97GFYlZRp+FjwrQ2MD9KV59CmeBre0D14OmNDHX978ZkiEF5' \
+        + 'v6iflsWL+VsyILZZoebzbyXzjHvXn5K8IO+GfFPILclA9toe2Ifu89DrAoGAEUNU' \
+        + 'x+AUrlWHj+gt+DjL3ou/LI6O2MYZbI36RqMYTxpCK0VKMNuTUoMzdjiFR/0ANUZT' \
+        + '3/yC3wo6H9ZomhqOgyUXnBAJNj4HrEm2ZyihBUkwyGWmJ0rrhxIqzWK9YbBcY3yB' \
+        + 'Qa8M25fmuHumkR7nNNmuU6ZSBlVNX2C7ewgoZgECgYEA3N2jGSgKjFpQCl+Ox0p/' \
+        + '0bmfmZ6TeSTHuAfF7pEjB8EoDag4SzT/86hG44UVNEMJjyXll+T969IMMziDcB0+' \
+        + 'bkjEpLyAKT5alnqSMovaIKv3EOgmhLXBRqVG5Vb+wEBs/Wl5nv7XP6J5ghi87Vom' \
+        + 'B+3aA+EbsBi3pZYAq8BX4yo=';
+
+
+	def GCASH_PUBLIC_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgo22hZx9N2EXHh8ZspL/iHYcuL1tSdQ974nTkJHRlKRWNzyQqO6TSYouY+nA0y/WD2Pz2wwKwTDBFW82DNekYgFeKZ2bCrsG3Twi7tn3DbfFGKzXfBzXYv6sggL/1Ej2/ABzMVWIaAo8t9Wo5A+/12nOLQIwxsHXZTUrbCJeZYUAfRQFLyIp2/PxVeVd0bLhtEAAj8aJq8RlSlPYdUIgk+CJ+WVdUs7rhMd09MArgAFwB3iRPbBS4gf7QEswRaBDQ3fTJIYE6xTr53geuv9MAO6B2x0Qt0ctmrdGtjLdsoq2KWmlPXo/GS6uJadwQ+xR9JbudS4eZYKNYTf6zGsvVwIDAQAB';
+	
+	@ProxyMethod
+	public def getSignature(request) {
+		def head = [:]
+		head.clientId = request.head.clientId
+		head.reqMsgId = request.head.reqMsgId
+		head.clientSecret = request.head.clientSecret
+		if (request.head.reqTime) {
+			head.reqTime = request.head.reqTime
+		} else {
+			head.respTime = request.head.respTime
+		}
+		
+		def signatureInfo = [
+			head: head,
+			body: [
+				merchantId: request.body.merchantId,
+				merchantTransId: request.body.merchantTransId,
+			]
+		]
+		def jsonData = JsonUtil.toString(signatureInfo)
+		return encrypt(jsonData, GCASH_PUBLIC_KEY)
+	}
+
+	@ProxyMethod
+	public void validateCheckout(checkout) {
+		println 'validateCheckout ============================= '
+		def response = checkout.response
+		def signature = decrypt(checkout.signature)
+		def info = JsonUtil.toMap(signature)
+
+		println '*** '
+		info.each{ k, v -> println '  -> ' + k + ' : ' + v }
+
+		if (
+			info.head.clientId != response.head.clientId || 
+			info.head.respTime != response.head.respTime || 
+			info.head.reqMsgId != response.head.reqMsgId || 
+			info.head.clientSecret != response.head.clientSecret || 
+			info.body.merchantId != response.body.merchantId || 
+			info.body.merchantTransId != response.body.merchantTransId
+		
+		) {
+			throw new Exception('Invalid transaction signature. Kindly try again the transaction later.')
+		}
+	}
+
+	@ProxyMethod
+	public String encrypt(String plainText, String pubkey) throws Exception {
+		PublicKey publicKey = getPublicKey(pubkey)
+        Cipher encryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        byte[] cipherText = encryptCipher.doFinal(plainText.getBytes("UTF-8"));
+        return Base64.encodeBase64String(cipherText);
+    }
+    
+	@ProxyMethod
+    public String decrypt(String cipherText) throws Exception {
+		PrivateKey privateKey = getPrivateKey(RSI_PRIVATE_KEY);
+        byte[] bytes = Base64.decodeBase64(cipherText);
+        Cipher decriptCipher = Cipher.getInstance("RSA");
+        decriptCipher.init(Cipher.DECRYPT_MODE, privateKey);
+        return new String(decriptCipher.doFinal(bytes), "UTF-8");
+    }
+
+	private PublicKey getPublicKey(String key) {
+        try {
+            byte[] byteKey = Base64.decodeBase64(key);
+            X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(byteKey);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return kf.generatePublic(X509publicKey);
+        } catch (Exception e) {
+			e.printStackTrace();
+            throw new Exception('Invalid public key');
+        }
+    }
+
+	private PrivateKey getPrivateKey(String pkcs8Pem) throws Exception {
+        byte [] pkcs8EncodedBytes = Base64.decodeBase64(pkcs8Pem);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pkcs8EncodedBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePrivate(keySpec);
+    }
+
+}
