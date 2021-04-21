@@ -52,22 +52,29 @@ class GcashPaymentPartnerOptionInterceptor {
 		def checkout = evt.args[0].checkout
 		def partner = evt.result.paypartner
 
-		println 'buildPaymentPartnerOption==========================='
-		partner.each{k,v -> println '  -> ' + k + ' = ' + v}
+		println '\n=== buildPaymentPartnerOption (partner) ====='
+		partner.each{ 
+			println '> '+ it; 
+		}
 
 		def params = [ request: [:] ]
 
 		params.request.head = partner.info.wallet.head
 		params.request.head.reqTime = formatCurrentTime(po)
 		params.request.head.reqMsgId = createGcashLog(po)
+		params.request.head.clientID = params.request.head.remove('clientId'); 
 
 		params.request.body = partner.info.wallet.body
 		params.request.body.notificationUrls = getNotificationUrls(partner, po)
 		params.request.body.order = getOrder(partner, po, checkout)
 
 		params.signature = signSvc.getSignature(params.request)
+		println '\n=== buildPaymentPartnerOption (params) ====='
+		params.each{ 
+			println '> '+ it; 
+		}
 
-		partner.params = params 
+		partner.params = params;
 		checkOut(partner, po, checkout)
 	}
 
@@ -186,11 +193,12 @@ class GcashPaymentPartnerOptionInterceptor {
 		def http = new BasicHttpClient()
 		def retval = http.post(urlPath, jsonData, option.headerpost)
 		if (retval.responsecode == 200) {
+			println 'checkout retval.data -> '+ retval.data; 
 			partner.checkout = JsonUtil.toMap(retval.data)
 			println 'checkout data ***'
 			partner.checkout.each{k, v -> println '  -> ' + k + ' : ' + v}
 
-			signSvc.validateCheckout(partner)
+			signSvc.validateCheckout(partner.checkout);
 
 			em_po.find([objid: po.objid]).update([checkoutid: partner.checkout.response.body.transactionId, checkouttype: checkout.type])
 		} else {
