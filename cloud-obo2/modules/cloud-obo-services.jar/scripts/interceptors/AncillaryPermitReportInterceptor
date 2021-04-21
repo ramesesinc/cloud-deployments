@@ -17,6 +17,7 @@ class AncillaryPermitReportInterceptor {
 		if ( parent) { 
 			//we should remove state so as not to conflict with the application state
 			app.remove("state");
+			app.remove("objid");
 			parent.putAll( app );
 			app = parent;
 		}
@@ -39,7 +40,7 @@ class AncillaryPermitReportInterceptor {
 			worktypes.put( it.toLowerCase()?.replaceAll(" ", "_") , true );
 		}
 		app.worktypes = worktypes;
-		
+		app.qrcode = "qrcode:" + app.objid;
 		app.template = "reports/obo/" + reportid.replace("building_ancillary_", "") + "_permit";
 		app.remove('infos'); 
 		result.data = app;
