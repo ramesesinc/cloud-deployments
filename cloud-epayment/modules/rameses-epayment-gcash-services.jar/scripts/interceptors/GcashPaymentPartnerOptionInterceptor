@@ -62,7 +62,7 @@ class GcashPaymentPartnerOptionInterceptor {
 		params.request.head = partner.info.wallet.head
 		params.request.head.reqTime = formatCurrentTime(po)
 		params.request.head.reqMsgId = createGcashLog(po)
-		params.request.head.clientID = params.request.head.remove('clientId'); 
+		// params.request.head.clientID = params.request.head.clientId;
 
 		params.request.body = partner.info.wallet.body
 		params.request.body.notificationUrls = getNotificationUrls(partner, po)
@@ -198,13 +198,15 @@ class GcashPaymentPartnerOptionInterceptor {
 			println 'checkout data ***'
 			partner.checkout.each{k, v -> println '  -> ' + k + ' : ' + v}
 
-			signSvc.validateCheckout(partner.checkout);
+			def resp = signSvc.validateCheckout( partner.checkout ); 
+			def transactionId = resp.body.transactionId; 
 
-			em_po.find([objid: po.objid]).update([checkoutid: partner.checkout.response.body.transactionId, checkouttype: checkout.type])
-		} else {
-			partner.error = JsonUtil.toMap(retval.error)
-			partner.error.errormsg = partner.error.error
-			println 'ERROR => ' + partner.error
+			em_po.find([ objid: po.objid ]).update([ checkoutid: transactionId, checkouttype: checkout.type ]); 
+		} 
+		else {
+			partner.error = JsonUtil.toMap(retval.error);
+			partner.error.errormsg = partner.error.error;
+			println 'ERROR => ' + partner.error;
 		}
 	}
 
@@ -223,7 +225,7 @@ class GcashPaymentPartnerOptionInterceptor {
 		order.seller = [:]
 		order.seller.userId = ''
 		order.seller.externalUserId = partner.objid
-		order.seller.externalUserType = partner.partnerid
+		order.seller.externalUserType = partner.objid
 
 		order.buyer = [:]
 		order.buyer.userId = ''

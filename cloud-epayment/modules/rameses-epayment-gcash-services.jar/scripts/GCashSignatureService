@@ -1,18 +1,13 @@
 import com.rameses.annotations.*;
 import com.rameses.common.*;
-import com.rameses.osiris3.server.JsonUtil
+import com.rameses.osiris3.server.JsonUtil;
 
 import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
+import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
-import javax.crypto.Cipher;
 import org.apache.commons.net.util.Base64;
 
 class GCashSignatureService {
@@ -50,88 +45,56 @@ class GCashSignatureService {
 	
 	@ProxyMethod
 	public def getSignature(request) {
-		def head = [:]
-		head.clientID = request.head.clientID;
-		if (request.head.reqTime) {
-			head.reqTime = request.head.reqTime
-		} else {
-			head.respTime = request.head.respTime
-		}
-
-		head.reqMsgId = request.head.reqMsgId
-		head.clientSecret = request.head.clientSecret
-		
-		def signatureInfo = [
-			head: head,
-			body: [
-				merchantId: request.body.merchantId,
-				merchantTransId: request.body.merchantTransId
-			]
-		]; 
-
-		def jsonData = JsonUtil.toString(signatureInfo);
+		def jsonData = JsonUtil.toString( request );
 		println '\n** signatureInfo JSON -> ' + jsonData; 
-		return encrypt(jsonData, GCASH_PUBLIC_KEY)
-	}
+		return signSHA256RSA( jsonData ); 
+	} 
 
 	@ProxyMethod
-	public void validateCheckout(checkout) {
-		println 'validateCheckout ============================= '
+	public def validateCheckout(checkout) {
+		println '\nvalidateCheckout ============================= '
 		def response = checkout.response;
 		def resultInfo = response.body?.resultInfo; 
 		if ( resultInfo && resultInfo.resultCodeId.toString() != '00000000') {
 			throw new Exception(''+ resultInfo.resultCodeId +': '+ resultInfo.resultMsg); 
 		}
 
-		def signature = decrypt(checkout.signature)
-		def info = JsonUtil.toMap(signature)
-
-		println '*** info ***'
-		info.each{ k, v -> println '  -> ' + k + ' : ' + v }
-
-		if ( 
-			info.head.reqMsgId != response.head.reqMsgId 
-		) {
-			throw new Exception('Invalid transaction signature. Kindly try again the transaction later.')
-		}
+		def responseStr = JsonUtil.toString( response ); 
+		println 'responseStr -> '+ responseStr; 
+		println 'signature   -> '+ checkout.signature; 
+		boolean verified = verify( responseStr, checkout.signature ); 
+		if ( !verified ) { 
+			throw new Exception('Signature cannot be verified using the public key');  
+		}  
+		return response; 
 	}
 
-	@ProxyMethod
-	public String encrypt(String plainText, String pubkey) throws Exception {
-		PublicKey publicKey = getPublicKey(pubkey)
-        Cipher encryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-        encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        byte[] cipherText = encryptCipher.doFinal(plainText.getBytes("UTF-8"));
-        String encstr = Base64.encodeBase64String(cipherText);
-        return encstr.replaceAll("\\s{1,}",""); 
-    }
-    
-	@ProxyMethod
-    public String decrypt(String cipherText) throws Exception {
-		PrivateKey privateKey = getPrivateKey(RSI_PRIVATE_KEY);
-        byte[] bytes = Base64.decodeBase64(cipherText);
-        Cipher decriptCipher = Cipher.getInstance("RSA");
-        decriptCipher.init(Cipher.DECRYPT_MODE, privateKey);
-        return new String(decriptCipher.doFinal(bytes), "UTF-8");
-    }
 
-	private PublicKey getPublicKey(String key) {
-        try {
-            byte[] byteKey = Base64.decodeBase64(key);
-            X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(byteKey);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            return kf.generatePublic(X509publicKey);
-        } catch (Exception e) {
-			e.printStackTrace();
-            throw new Exception('Invalid public key');
-        }
-    }
-
-	private PrivateKey getPrivateKey(String pkcs8Pem) throws Exception {
-        byte [] pkcs8EncodedBytes = Base64.decodeBase64(pkcs8Pem);
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pkcs8EncodedBytes);
+    String signSHA256RSA( String plainText ) {
+        byte[] pk_bytes = Base64.decodeBase64( RSI_PRIVATE_KEY ); 
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec( pk_bytes );
         KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePrivate(keySpec);
-    }
 
+        Signature privateSignature = Signature.getInstance("SHA256withRSA");
+        privateSignature.initSign( kf.generatePrivate( spec ));
+        privateSignature.update( plainText.getBytes("UTF-8"));
+
+		byte[] encbytes = privateSignature.sign(); 
+		String encstr = Base64.encodeBase64String( encbytes ); 
+		return encstr.replaceAll("\\s{1,}",""); 
+    }  
+
+    boolean verify( String plainText, String signature ) {
+    	byte[] bytes = plainText.getBytes("UTF-8"); 
+    	byte[] sigBytes = Base64.decodeBase64( signature );
+
+        byte[] keyBytes = Base64.decodeBase64( GCASH_PUBLIC_KEY );
+        X509EncodedKeySpec spec = new X509EncodedKeySpec( keyBytes );
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+
+        Signature sig = Signature.getInstance("SHA256withRSA");
+        sig.initVerify( kf.generatePublic( spec ));
+        sig.update( bytes );
+        return sig.verify( sigBytes ); 
+    }
 }
