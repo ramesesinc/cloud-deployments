@@ -74,9 +74,17 @@ class CloudPaymentService {
 		]
 		def payoption = self.getPaymentPartnerOption(p);
 
+		println '\n** getPayPartner (payoption)'
+		payoption.each{
+			println '> '+ it;
+		}
+
 		def formaction = payoption.paypartner?.info?.testactionurl; 
 		if (payoption.paypartner?.checkout) {
 			formaction = payoption.paypartner.checkout.redirectUrl;
+			if ( !formaction ) 
+				throw new Exception("checkout.redirectUrl must be set when providing a checkout data");  
+
 			def tokens = formaction.split("=");
 			payoption.paypartner.id = tokens[1];
 			payoption.paypartner.isredirect = true;
