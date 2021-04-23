@@ -48,9 +48,10 @@ class GcashPaymentPartnerOptionInterceptor {
 	
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'gcash' }")
 	public void buildPaymentPartnerOption(evt) { 
-		def po = evt.args[0].paymentorder
-		def checkout = evt.args[0].checkout
-		def partner = evt.result.paypartner
+		def po = evt.args[0].paymentorder;
+		def partner = evt.result.paypartner;
+		def checkout = evt.args[0].checkout;
+		if ( checkout == null ) checkout = [:];
 
 		println '\n=== buildPaymentPartnerOption (partner) ====='
 		partner.each{ 
@@ -71,6 +72,16 @@ class GcashPaymentPartnerOptionInterceptor {
 		params.signature = signSvc.getSignature(params.request)
 		println '\n=== buildPaymentPartnerOption (params) ====='
 		params.each{ 
+			println '> '+ it; 
+		}
+
+		println '\n=== buildPaymentPartnerOption (checkout) ====='
+		checkout.each{ 
+			println '> '+ it; 
+		}
+
+		println '\n=== buildPaymentPartnerOption (po) ====='
+		po.each{ 
 			println '> '+ it; 
 		}
 
@@ -132,55 +143,48 @@ class GcashPaymentPartnerOptionInterceptor {
 			response: response,
 			signature: signSvc.getSignature(response),
 		];
-		
-
-
-
-		// // unsuccessful payment, log and return 200
-		// if (checkout.paymentStatus != "PAYMENT_SUCCESS") {
-		// 	result.status = 200;
-		// 	println 'WEBHOOK [INFO] unsuccessful payment: ' + paymentorderid + ': ' + checkout.paymentStatus;
-		// 	return;
-		// }
-
-		// //is po paid 
-		// def paidpo = em_po_paid.find([objid: paymentorderid]).first();
-		// if (paidpo) {
-		// 	result.status = 200;
-		// 	println 'WEBHOOK [INFO] transaction already posted'
-		// 	return;
-		// };
-
-		// //is valid po
-		// def po = em_po.find([objid: paymentorderid]).first();
-		// if (po) {
-		// 	def params = [:]
-		// 	params.statusid = 'paymayasuccess';
-		// 	params.paymentrefid = checkout.requestReferenceNumber;
-		// 	params.paypartnerid = 'PAYMAYA';
-		// 	svc.postPartnerPayment(params);
-		// 	println 'WEBHOOK [INFO] post partner payment completed.'
-		// } else {
-		// 	//invalid po
-		// 	result.status = 200;
-		// 	println 'WEBHOOK [INFO] invalid transaction'
-		// }
 	}
 
 	def getPaymentDetail(partner, args) {
-		def po = em_po.select("checkoutid,checkouttype").find([ objid: args.paymentrefid ]).first();
-		if ( po ) {
-			def option = partner.info[po.checkouttype]
-			def urlPath = option.actionurl + "/" + po.checkoutid
+		println '\n=== getPaymentDetail (partner) =======';
+		partner.each{
+			println '> '+ it; 
 		}
-		return [requestReferenceNumber: args.paymentrefid];
+
+		println '\n=== getPaymentDetail (args) =======';
+		args.each{
+			println '> '+ it; 
+		}
+
+		def po = em_po.select("checkoutid,checkouttype").find([ objid: args.paymentrefid ]).first();
+
+		println '\n=== getPaymentDetail (po) =======';
+		po.each{
+			println '> '+ it; 
+		}
+
+		if ( po ) { 
+			if ( !po.checkouttype ) { 
+				po.checkouttype = 'wallet'; 
+			} 
+
+			def option = partner.info[ po.checkouttype ]; 
+			if ( !option ) throw new Exception("partner.info[ "+ po.checkouttype +" ]  config data is not set"); 
+
+			def urlPath = option.actionurl + "/" + po.checkoutid; 
+		}
+		return [ requestReferenceNumber: args.paymentrefid ];
 	}
 
 	void checkOut(partner, po, checkout) {
 		println 'checkOut ========================'
-		def option = partner.info.wallet
-		def urlPath = option.actionurl
-		def jsonData = JsonUtil.toString(partner.params)
+		if ( !checkout.type ) { 
+			checkout.type = 'wallet'; 
+		} 
+
+		def option = partner.info[ checkout.type ]; 
+		def urlPath = option.actionurl; 
+		def jsonData = JsonUtil.toString( partner.params )
 
 		println 'option **** '
 		option.each{k,v -> println '  => ' + k + ' = ' + v}
@@ -200,6 +204,8 @@ class GcashPaymentPartnerOptionInterceptor {
 
 			def resp = signSvc.validateCheckout( partner.checkout ); 
 			def transactionId = resp.body.transactionId; 
+
+			partner.checkout.redirectUrl = resp.body.checkoutUrl; 
 
 			em_po.find([ objid: po.objid ]).update([ checkoutid: transactionId, checkouttype: checkout.type ]); 
 		} 
