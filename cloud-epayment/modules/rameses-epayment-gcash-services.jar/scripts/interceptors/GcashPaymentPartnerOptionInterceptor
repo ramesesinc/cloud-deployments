@@ -121,7 +121,7 @@ class GcashPaymentPartnerOptionInterceptor {
 
 		def paymentorderid = checkout.requestReferenceNumber;
 
-		def respose = [:]
+		def response = [:]
 		response.head = [:]
 		response.head = partner.info.head
 		response.head.function = 'gcash.acquiring.order.finish.notify'
