@@ -239,11 +239,17 @@ class GcashPaymentPartnerOptionInterceptor {
 		order.buyer.externalUserType = 'FILIPIZEN'
 
 		order.orderTitle = po.particulars
-		order.orderAmount = ['currency': 'PHP', value: convertAsCentsFormat(po.amount)]
+		order.orderAmount = ['currency': 'PHP', value: convertAsCentsFormat(getTotalAmount(po, checkout))]
 		order.merchantTransId = po.objid
 
 		println 'amount => ' + order.orderAmount
 		return order
+	}
+
+	def getTotalAmount(po, checkout) {
+		def amount = po.amount
+		def fee = checkout && checkout.fee ? checkout.fee : 0.0
+		return amount + fee;
 	}
 
 	public def convertAsCentsFormat(amount) {
