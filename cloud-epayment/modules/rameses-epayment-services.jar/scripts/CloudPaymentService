@@ -276,10 +276,16 @@ class CloudPaymentService {
 	}
 
 	@ProxyMethod
-	public def postPartnerWebhook(params) {
+	public def postPartnerWebhook(params) { 
+		def po = po_db.find([ objid: params.paymentrefid.toString() ]).first(); 
+		if ( !po ) {
+			po = po_paid_db.find([ objid: params.paymentrefid.toString() ]).first(); 
+		}
+
 		return [
-			paypartnerid: params.paypartnerid,
-			status: 200,
+			po: po, 
+			status: 200, 
+			paypartnerid: params.paypartnerid 
 		];
 	}
 
