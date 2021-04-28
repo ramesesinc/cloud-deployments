@@ -38,6 +38,7 @@
 		<field name="ptr_dtissued" />
 		<field name="ptr_placeissued" />
 		<field name="profid" />
+		<field name="orgcode" />
 	</element>
 </schema>		
 

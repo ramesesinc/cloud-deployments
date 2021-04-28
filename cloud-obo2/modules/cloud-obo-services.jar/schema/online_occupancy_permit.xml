@@ -1,6 +1,6 @@
 <schema>
 	<element tablename="online_occupancy_permit">
-		<field name="objid" primary="true"/>
+		<field name="objid" primary="true" visible="true" searchable="true" indexed="true" caption="Tracking No" />
 		<field name="state" />
 		<field name="orgcode" required="true"/>
 
