@@ -5,7 +5,8 @@
 .osiris_pid
 .shutdown_pid
 Thumbs.db
-_custom
+_custom/*
+!_custom/jasper
 /cloud-jasper/output
 /rabbitmq/data
 /redis-cache
