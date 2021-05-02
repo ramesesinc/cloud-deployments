@@ -17,6 +17,9 @@ class GcashPaymentPartnerOptionInterceptor {
 	@Service('GCashSignatureService')
 	def signSvc
 
+	@Service('GCashOrderQueryService')
+	def orderQuerySvc;
+
 	@DataContext('gcash_log')
 	def em_log
 
@@ -108,51 +111,34 @@ class GcashPaymentPartnerOptionInterceptor {
 
 	@After(pattern="CloudPaymentService.postPartnerWebhook", eval="#{args[0].paypartnerid.equalsIgnoreCase('gcash')}")
 	public void afterPostPartnerWebhook(evt) { 
+		logH('afterPostPartnerWebhook');
+		
 		def args = evt.args[0];
 		def result = evt.result;
 		def checkout = args.data;
 
-		logH('afterPostPartnerWebhook (args)');
-		args.each{k, v -> println '  -> ' + k + ': ' + v }
-
-		logH('afterPostPartnerWebhook (checkout)');
-		checkout.each{k, v -> println '  -> ' + k + ': ' + v }
-
-		logH('afterPostPartnerWebhook (result)');
-		result.each{k, v -> println '  -> ' + k + ': ' + v }
-
 		def po = result.po; 
+		logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid);
+
 		def orgcode = po.orgcode;
 		def paypartnerid = args.paypartnerid; 
 
 		def partner = em_partner_option.find([ partnerid: orgcode.toString() ]).where('paypartner.objid = :paypartnerid', [paypartnerid: paypartnerid]).first(); 
-		logH('afterPostPartnerWebhook (partner)');
-		partner.each{k, v -> println '  -> ' + k + ': ' + v }
 		
-		def wallet = partner.info.wallet; 
+		// let's check the order status
+		def orderinfo = orderQuerySvc.query([ paymentrefid: po.objid, po: po, partner: partner ]);
+		def orderstat = orderinfo?.response?.body?.statusDetail?.acquirementStatus; 
+		if ( orderstat.toString().toUpperCase() != 'SUCCESS' ) {
+			logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', status = '+ orderstat);
+			result.status = 200; 
+			return; 
+		} 
 
-		def response = [:];
-		response.head = [:];
-		response.head = wallet.head;
-		response.head.function = 'gcash.acquiring.order.finish.notify';
-		response.head.respTime = formatCurrentTime([ txndate: dtSvc.serverDate ]);
-		response.head.reqMsgId = createGcashLog( po ); 
-
-		response.body = [:]
-		response.body.merchantId = wallet.body.merchantId;
-		response.body.merchantTransId = po.objid;
-		response.body.resultInfo = [
-			resultStatus: 'S',
-			resultCodeId: '00000',
-			resultCode: 'SUCCESS',
-			resultMsg : 'SUCCESS' 
-		];
-
-		result.status = 200;
-		result.response = [ 
-			response: response, 
-			signature: signSvc.getSignature(response) 
-		];
+		def param = [:]; 
+		param.statusid = 'gcashsuccess'; 
+		param.paymentrefid = po.objid; 
+		param.paypartnerid = 'GCASH'; 
+		svc.postPartnerPayment( param );
 	}
 
 	def getPaymentDetail(partner, args) {
@@ -277,7 +263,7 @@ class GcashPaymentPartnerOptionInterceptor {
 		]
 	}
 
-	void logH( title ) {
-		println ('** GCASH: '+ title +' =========='); 
+	void logH( message ) {
+		println '\n'+ getClass().getSimpleName() +': '+ message; 
 	}
 }

@@ -44,9 +44,12 @@ class GCashSignatureService {
 	def GCASH_PUBLIC_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgo22hZx9N2EXHh8ZspL/iHYcuL1tSdQ974nTkJHRlKRWNzyQqO6TSYouY+nA0y/WD2Pz2wwKwTDBFW82DNekYgFeKZ2bCrsG3Twi7tn3DbfFGKzXfBzXYv6sggL/1Ej2/ABzMVWIaAo8t9Wo5A+/12nOLQIwxsHXZTUrbCJeZYUAfRQFLyIp2/PxVeVd0bLhtEAAj8aJq8RlSlPYdUIgk+CJ+WVdUs7rhMd09MArgAFwB3iRPbBS4gf7QEswRaBDQ3fTJIYE6xTr53geuv9MAO6B2x0Qt0ctmrdGtjLdsoq2KWmlPXo/GS6uJadwQ+xR9JbudS4eZYKNYTf6zGsvVwIDAQAB';
 	
 	@ProxyMethod
-	public def getSignature(request) {
+	public def getSignature( request ) {
+		if ( request instanceof String ) {
+			return signSHA256RSA( request ); 	
+		}
+		
 		def jsonData = JsonUtil.toString( request );
-		println '\n** signatureInfo JSON -> ' + jsonData; 
 		return signSHA256RSA( jsonData ); 
 	} 
 

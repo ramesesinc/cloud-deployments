@@ -1,0 +1,145 @@
+import com.rameses.annotations.*; 
+import com.rameses.http.BasicHttpClient;
+import com.rameses.osiris3.server.JsonUtil;
+
+class GCashOrderQueryService {
+
+	@Service('DateService')
+	def dateSvc; 
+
+	@Service('GCashSignatureService')
+	def sigSvc; 
+
+
+	@DataContext('paymentorder')
+	def po_db;
+
+	@DataContext('paymentorder_paid')
+	def po_paid_db;
+
+	@DataContext('paymentorder_cancelled')
+	def po_cancelled_db;
+
+	@DataContext('payment_partner_option')
+	def partner_option_db;
+
+
+	@ProxyMethod 
+	public def query( param ) {
+		if ( !param.paymentrefid )
+			throw new Exception('paymentrefid parameter is required');
+
+		def po = param.po; 
+		if ( !po ) po = findPO( param.paymentrefid ); 
+		if ( !po ) throw new Exception('payment order not found');
+
+		if ( po.status.toString() == 'CANCELLED' ) 
+			throw new Exception('payment order status is CANCELLED');
+
+		def partner = param.partner; 
+		if ( !partner ) {
+			def m = [ paypartnerid: 'GCASH' ];
+			partner = partner_option_db.find([ partnerid: po.orgcode ]).where('paypartner.objid = :paypartnerid', m ).first(); 
+			if ( !partner ) 
+				throw new Exception(''+ po.orgcode +'_'+ m.paypartnerid +' paypartner option not found'); 
+		} 
+
+		if ( !partner.info )
+			throw new Exception(''+ po.orgcode +'_'+ m.paypartnerid +' paypartner info not found');
+
+		def wallet = partner.info.wallet; 
+		if ( !wallet ) throw new Exception('partner.info.wallet is required'); 
+		if ( !wallet.queryapi ) throw new Exception('partner.info.wallet.queryapi is required'); 
+
+		def queryapi = wallet.queryapi; 
+		if ( !queryapi.function ) throw new Exception('partner.info.wallet.queryapi.function is required'); 
+		if ( !queryapi.url ) throw new Exception('partner.info.wallet.queryapi.url is required'); 
+
+		def runDate = dateSvc.getServerDate();
+		def reqMsgId = new java.rmi.server.UID().toString(); 
+
+		def data = [:]; 
+		data.request = [:]; 
+		data.request.head = [:]; 
+		copyInfo( wallet?.head, ['version','function','clientId','clientSecret'], data.request.head); 
+		data.request.head.function = queryapi.function; 
+		data.request.head.reqMsgId = reqMsgId; 
+		data.request.head.reqTime = formatDateTime( runDate ); 
+
+		data.request.body = [:];
+		data.request.body.merchantTransId = po.objid; 
+		copyInfo( wallet?.body, ['merchantId'], data.request.body); 
+
+		data.signature = sigSvc.getSignature( data.request ); 
+
+		queryapi.fullResult = ( param.fullResult.toString() == '1' ); 
+		return postData( queryapi, data, wallet?.headerpost ); 
+	}
+
+
+
+	def findPO( paymentrefid ) {
+		def param = [ objid: paymentrefid ]; 
+		def po = po_db.find( param ).first(); 
+		if ( po ) {
+			po.status = 'OPEN'; 
+			return po; 
+		} 
+
+		po = po_paid_db.find( param ).first(); 
+		if ( po ) {
+			po.status = 'PAID'; 
+			return po; 
+		}
+		
+		po = po_paid_db.find( param ).first(); 
+		if ( po ) {
+			po.status = 'CANCELLED'; 
+			return po; 
+		}
+
+		return null;  
+	}
+
+	void copyInfo( source, keys, target ) {
+		if ( !source || !keys ) return;
+		if ( target == null ) return; 
+
+		keys.each{
+			target.put( it, source.get( it )); 
+		}
+	}
+
+	def formatDateTime( txndate ) {
+		return String.format('%1$tY-%1$tm-%1$tdT%1$tH:%1$tM:%1$tS+08:00', txndate);
+	}
+
+	void logH( message ) {
+		println '\n'+ getClass().getSimpleName() +': '+ message; 
+	}
+
+	def postData( queryapi, data, headerParam ) {
+		def jsonreq = JsonUtil.toString( data ); 
+		logH( 'json-req -> '+ jsonreq ); 
+
+		System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2"); 
+
+		if ( headerParam == null ) {
+			headerParam = [:]; 
+		}
+
+		def http = new BasicHttpClient()
+		def res = http.post( queryapi.url, jsonreq, headerParam ); 
+		if ( res.responsecode == 200 ) {
+			logH( 'res.data (json) -> '+ res.data ); 
+			data = JsonUtil.toMap( res.data ); 
+			// sigSvc.validateCheckout( data ); 
+			if ( queryapi.fullResult ) { 
+				return [ data: data, jsonreq: jsonreq, jsonres: res.data ]; 
+			}
+			return data; 
+		} 
+
+		throw new Exception( res.error.error ); 
+	}
+} 
