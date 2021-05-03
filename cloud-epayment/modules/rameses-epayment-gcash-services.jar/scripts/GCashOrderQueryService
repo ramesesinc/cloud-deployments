@@ -55,20 +55,12 @@ class GCashOrderQueryService {
 		if ( !queryapi.function ) throw new Exception('partner.info.wallet.queryapi.function is required'); 
 		if ( !queryapi.url ) throw new Exception('partner.info.wallet.queryapi.url is required'); 
 
-		def runDate = dateSvc.getServerDate();
-		def reqMsgId = new java.rmi.server.UID().toString(); 
-
 		def data = [:]; 
 		data.request = [:]; 
-		data.request.head = [:]; 
-		copyInfo( wallet?.head, ['version','function','clientId','clientSecret'], data.request.head); 
+		data.request.head = createHead([ info: wallet?.head ]); 
 		data.request.head.function = queryapi.function; 
-		data.request.head.reqMsgId = reqMsgId; 
-		data.request.head.reqTime = formatDateTime( runDate ); 
 
-		data.request.body = [:];
-		data.request.body.merchantTransId = po.objid; 
-		copyInfo( wallet?.body, ['merchantId'], data.request.body); 
+		data.request.body = createBody([ info: wallet?.body, preInfo: [ merchantTransId: po.objid ]]); 
 
 		data.signature = sigSvc.getSignature( data.request ); 
 
@@ -76,6 +68,39 @@ class GCashOrderQueryService {
 		return postData( queryapi, data, wallet?.headerpost ); 
 	}
 
+	@ProxyMethod 
+	public def createHead( param ) {
+		def newhead = [:]; 
+		if ( param.preInfo ) newhead.putAll( param.preInfo ); 
+		
+		copyInfo( param?.info, ['version','function','clientId','clientSecret'], newhead ); 
+
+		newhead.reqMsgId = param.reqMsgId; 
+		if ( !newhead.reqMsgId ) { 
+			newhead.reqMsgId = new java.rmi.server.UID().toString(); 
+		} 
+		
+		if ( param.txndate instanceof java.util.Date ) {
+			newhead.reqTime = formatDateTime( param.txndate ); 
+		}
+		else { 
+			newhead.reqTime = formatDateTime( dateSvc.getServerDate()); 
+		}
+
+		if ( param.postInfo ) newhead.putAll( param.postInfo ); 
+		return newhead; 
+	} 
+
+	@ProxyMethod 
+	public def createBody( param ) {
+		def newbody = [:]; 
+		if ( param.preInfo ) newbody.putAll( param.preInfo ); 
+
+		copyInfo( param?.info, ['merchantId'], newbody ); 
+
+		if ( param.postInfo ) newbody.putAll( param.postInfo ); 
+		return newbody; 
+	} 
 
 
 	def findPO( paymentrefid ) {

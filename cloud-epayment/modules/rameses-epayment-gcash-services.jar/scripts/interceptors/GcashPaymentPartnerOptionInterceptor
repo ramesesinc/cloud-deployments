@@ -127,18 +127,44 @@ class GcashPaymentPartnerOptionInterceptor {
 		
 		// let's check the order status
 		def orderinfo = orderQuerySvc.query([ paymentrefid: po.objid, po: po, partner: partner ]);
-		def orderstat = orderinfo?.response?.body?.statusDetail?.acquirementStatus; 
-		if ( orderstat.toString().toUpperCase() != 'SUCCESS' ) {
-			logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', status = '+ orderstat);
-			result.status = 200; 
+		def resultInfo = orderinfo?.response?.body?.resultInfo; 
+		def resultCodeId = resultInfo?.resultCodeId; 
+		if ( resultCodeId.toString() != '00000000' ) {
+			logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', resultInfo = '+ resultInfo); 
 			return; 
+		}
+
+		def statusDetail = orderinfo?.response?.body?.statusDetail;
+		logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', statusDetail = '+ statusDetail);	
+
+		def pmt = null; 
+		def acquirementStatus = statusDetail?.acquirementStatus; 
+		if ( acquirementStatus.toString().toUpperCase() == 'SUCCESS' ) {
+			def param = [:]; 
+			param.paypartnerid = 'GCASH'; 
+			param.paymentrefid = po.objid; 
+			param.statusid = 'gcashsuccess'; 
+			pmt = svc.postPartnerPayment( param ); 
 		} 
 
-		def param = [:]; 
-		param.statusid = 'gcashsuccess'; 
-		param.paymentrefid = po.objid; 
-		param.paypartnerid = 'GCASH'; 
-		svc.postPartnerPayment( param );
+		def wallet = partner.info.wallet; 
+
+		def response = [:]; 
+		response.head = orderQuerySvc.createHead( wallet.head ); 
+		response.head.function = 'gcash.acquiring.order.finish.notify'; 
+		response.head.respTime = response.head.remove('reqTime'); 
+		response.head.reqMsgId = createGcashLog( po ); 
+
+		response.body = [:];
+		response.body.resultInfo = [
+			resultStatus: 'S',
+			resultCodeId: '00000',
+			resultCode: 'SUCCESS',
+			resultMsg : 'SUCCESS' 
+		];
+
+		result.response = [ response: response, signature: signSvc.getSignature( response )]; 
+		result.status = 200; 
 	}
 
 	def getPaymentDetail(partner, args) {
