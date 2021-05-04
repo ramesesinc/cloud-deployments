@@ -115,10 +115,10 @@ class GcashPaymentPartnerOptionInterceptor {
 		
 		def args = evt.args[0];
 		def result = evt.result;
-		def checkout = args.data;
+		def data_req_head = args.data?.request?.head; 
 
 		def po = result.po; 
-		logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid);
+		logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', args -> '+ args);
 
 		def orgcode = po.orgcode;
 		def paypartnerid = args.paypartnerid; 
@@ -137,23 +137,32 @@ class GcashPaymentPartnerOptionInterceptor {
 		def statusDetail = orderinfo?.response?.body?.statusDetail;
 		logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', statusDetail = '+ statusDetail);	
 
-		def pmt = null; 
 		def acquirementStatus = statusDetail?.acquirementStatus; 
 		if ( acquirementStatus.toString().toUpperCase() == 'SUCCESS' ) {
-			def param = [:]; 
-			param.paypartnerid = 'GCASH'; 
-			param.paymentrefid = po.objid; 
-			param.statusid = 'gcashsuccess'; 
-			pmt = svc.postPartnerPayment( param ); 
+
+			def paidpo = em_po_paid.find([ objid: po.objid ]).select('objid').first(); 
+			if ( !paidpo ) { 
+				def param = [:]; 
+				param.paypartnerid = 'GCASH'; 
+				param.paymentrefid = po.objid; 
+				param.statusid = 'gcashsuccess'; 
+				svc.postPartnerPayment( param ); 
+			}
 		} 
 
 		def wallet = partner.info.wallet; 
 
 		def response = [:]; 
-		response.head = orderQuerySvc.createHead( wallet.head ); 
-		response.head.function = 'gcash.acquiring.order.finish.notify'; 
+		response.head = orderQuerySvc.createHead([ info: wallet.head ]); 
+		response.head.function = data_req_head?.function;
+		if ( !response.head.function ) {
+			response.head.function = 'gcash.acquiring.order.finish.notify'; 
+		}
 		response.head.respTime = response.head.remove('reqTime'); 
-		response.head.reqMsgId = createGcashLog( po ); 
+		response.head.reqMsgId = data_req_head?.reqMsgId; 
+		if ( !response.head.reqMsgId ) { 
+			response.head.reqMsgId = createGcashLog( po ); 	
+		}
 
 		response.body = [:];
 		response.body.resultInfo = [
