@@ -115,31 +115,51 @@ class GcashPaymentPartnerOptionInterceptor {
 		
 		def args = evt.args[0];
 		def result = evt.result;
-		def data_req_head = args.data?.request?.head; 
+		def data_req_head = args?.data?.request?.head; 
 
 		def po = result.po; 
 		logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', args -> '+ args);
 
-		def orgcode = po.orgcode;
+		def orgcode = po?.orgcode;
 		def paypartnerid = args.paypartnerid; 
-
 		def partner = em_partner_option.find([ partnerid: orgcode.toString() ]).where('paypartner.objid = :paypartnerid', [paypartnerid: paypartnerid]).first(); 
-		
-		// let's check the order status
-		def orderinfo = orderQuerySvc.query([ paymentrefid: po.objid, po: po, partner: partner ]);
-		def resultInfo = orderinfo?.response?.body?.resultInfo; 
-		def resultCodeId = resultInfo?.resultCodeId; 
-		if ( resultCodeId.toString() != '00000000' ) {
-			logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', resultInfo = '+ resultInfo); 
+		def wallet = partner?.info?.wallet; 
+
+		if ( !po?.objid ) {
+			// PO not found 
+			def statInfo =  [ resultStatus: 'U', resultCodeId: '00000900', resultCode: 'SYSTEM_ERROR', resultMsg: 'PAYMENT_ORDER_NOT_FOUND' ]; 
+			def response = buildWebhookResponse( wallet, data_req_head, statInfo ); 
+			result.response = [ response: response, signature: signSvc.getSignature( response )]; 
+			result.status = 200; 
 			return; 
 		}
 
-		def statusDetail = orderinfo?.response?.body?.statusDetail;
-		logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', statusDetail = '+ statusDetail);	
+		def acquirementStatus = null; 
+		def data_req_body = args?.data?.request?.body; 
+		if ( data_req_body == null ) {
+			// let's check the order status
+			def orderinfo = orderQuerySvc.query([ paymentrefid: po.objid, po: po, partner: partner ]);
+			def resultInfo = orderinfo?.response?.body?.resultInfo; 
+			def resultCodeId = resultInfo?.resultCodeId; 
+			if ( resultCodeId.toString() != '00000000' ) {
+				logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', resultInfo = '+ resultInfo); 
 
-		def acquirementStatus = statusDetail?.acquirementStatus; 
+				def response = buildWebhookResponse( wallet, data_req_head, resultInfo ); 
+				result.response = [ response: response, signature: signSvc.getSignature( response )]; 
+				result.status = 200; 
+				return; 
+			} 
+
+			def statusDetail = orderinfo?.response?.body?.statusDetail;
+			logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', statusDetail = '+ statusDetail);	
+			acquirementStatus = statusDetail?.acquirementStatus; 		
+		} 
+		else {
+			acquirementStatus = data_req_body.acquirementStatus; 
+		}
+
+		def statusInfo = null; 
 		if ( acquirementStatus.toString().toUpperCase() == 'SUCCESS' ) {
-
 			def paidpo = em_po_paid.find([ objid: po.objid ]).select('objid').first(); 
 			if ( !paidpo ) { 
 				def param = [:]; 
@@ -149,11 +169,21 @@ class GcashPaymentPartnerOptionInterceptor {
 				svc.postPartnerPayment( param ); 
 			}
 		} 
+		else {
+			def statInfo =  [ 
+				resultStatus: 'U', resultCodeId: '00000900', 
+				resultCode: 'SYSTEM_ERROR', resultMsg: 'acquirementStatus='+ acquirementStatus 
+			]; 
+		}
 
-		def wallet = partner.info.wallet; 
+		def response = buildWebhookResponse( wallet, data_req_head, statusInfo ); 
+		result.response = [ response: response, signature: signSvc.getSignature( response )]; 
+		result.status = 200; 
+	}
 
+	def buildWebhookResponse( wallet, data_req_head, statusInfo ) {
 		def response = [:]; 
-		response.head = orderQuerySvc.createHead([ info: wallet.head ]); 
+		response.head = orderQuerySvc.createHead([ info: wallet?.head ]); 
 		response.head.function = data_req_head?.function;
 		if ( !response.head.function ) {
 			response.head.function = 'gcash.acquiring.order.finish.notify'; 
@@ -165,15 +195,14 @@ class GcashPaymentPartnerOptionInterceptor {
 		}
 
 		response.body = [:];
-		response.body.resultInfo = [
-			resultStatus: 'S',
-			resultCodeId: '00000',
-			resultCode: 'SUCCESS',
-			resultMsg : 'SUCCESS' 
-		];
-
-		result.response = [ response: response, signature: signSvc.getSignature( response )]; 
-		result.status = 200; 
+		response.body.resultInfo = statusInfo;
+		if ( response.body.resultInfo == null ) {
+			response.body.resultInfo = [
+				resultStatus: 'S', resultCodeId: '00000000', 
+				resultCode: 'SUCCESS', resultMsg : 'SUCCESS' 
+			]; 
+		}
+		return response; 
 	}
 
 	def getPaymentDetail(partner, args) {
