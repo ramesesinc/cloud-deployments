@@ -160,6 +160,10 @@ class GcashPaymentPartnerOptionInterceptor {
 
 		def statusInfo = null; 
 		if ( acquirementStatus.toString().toUpperCase() == 'SUCCESS' ) {
+			def lockid = new java.rmi.server.UID().toString(); 
+			em_po.updateLock([ objid: po.objid, lockid: lockid ]); 
+			em_po_paid.updateLock([ objid: po.objid, lockid: lockid ]); 
+
 			def paidpo = em_po_paid.find([ objid: po.objid ]).select('objid').first(); 
 			if ( !paidpo ) { 
 				def param = [:]; 
@@ -202,6 +206,7 @@ class GcashPaymentPartnerOptionInterceptor {
 				resultCode: 'SUCCESS', resultMsg : 'SUCCESS' 
 			]; 
 		}
+		logH('buildWebhookResponse -> '+ response); 
 		return response; 
 	}
 
