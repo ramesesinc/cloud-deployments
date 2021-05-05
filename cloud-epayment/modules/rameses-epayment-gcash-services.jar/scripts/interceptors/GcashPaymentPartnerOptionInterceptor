@@ -317,14 +317,14 @@ class GcashPaymentPartnerOptionInterceptor {
 	}
 
 	def getNotificationUrls(partner, po) {
-		def success = (partner.info?.testsuccessurl ? partner.info?.testsuccessurl : partner.info?.successurl) + '?paymentrefid=' + po.objid
-		def failure = (partner.info?.testerrorurl ? partner.info?.testerrorurl : partner.info?.errorurl) + '?paymentrefid=' + po.objid
-		def notification = (partner.info?.testnotificationurl ? partner.info?.testnotificationurl : partner.info?.notificationurl) + '?paymentrefid=' + po.objid
+		def success = (partner.info?.testsuccessurl ? partner.info?.testsuccessurl : partner.info?.successurl) +'?paymentrefid='+ po.objid;
+		def failure = (partner.info?.testerrorurl ? partner.info?.testerrorurl : partner.info?.errorurl) +'?paymentrefid='+ po.objid;
+		def notification = (partner.info?.testnotificationurl ? partner.info?.testnotificationurl : partner.info?.notificationurl) +'?paymentrefid='+ po.objid +'&notify=1';
 		return [
 			[url: success, type: 'PAY_RETURN'],
 			[url: failure, type: 'CANCEL_RETURN'],
-			[url: notification, type: 'NOTIFICATION'],
-		]
+			[url: notification, type: 'NOTIFICATION']
+		];
 	}
 
 	void logH( message ) {
