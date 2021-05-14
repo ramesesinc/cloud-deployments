@@ -23,6 +23,9 @@ class GCashOrderQueryService {
 	@DataContext('payment_partner_option')
 	def partner_option_db;
 
+	@DataContext('gcash_log')
+	def log_db;
+
 
 	@ProxyMethod 
 	public def query( param ) {
@@ -147,20 +150,31 @@ class GCashOrderQueryService {
 		def jsonreq = JsonUtil.toString( data ); 
 		logH( 'json-req -> '+ jsonreq ); 
 
+		def merchantTransId = data.request.body.merchantTransId; 
+
 		System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2"); 
 
 		if ( headerParam == null ) {
 			headerParam = [:]; 
 		}
 
+		def jsonres = null; 
 		def http = new BasicHttpClient()
 		def res = http.post( queryapi.url, jsonreq, headerParam ); 
 		if ( res.responsecode == 200 ) {
-			logH( 'res.data (json) -> '+ res.data ); 
-			data = JsonUtil.toMap( res.data ); 
+			jsonres = res.data;
+			logH( 'json-res -> '+ jsonres ); 
+
+			log_db.create([ 
+				poid: merchantTransId, txntype: 'query',  
+				txndate: dateSvc.getServerDate(), 
+				info: [ request: jsonreq, response: jsonres ] 
+			]); 
+
+			data = JsonUtil.toMap( jsonres ); 
 			// sigSvc.validateCheckout( data ); 
 			if ( queryapi.fullResult ) { 
-				return [ data: data, jsonreq: jsonreq, jsonres: res.data ]; 
+				return [ data: data, jsonreq: jsonreq, jsonres: jsonres ]; 
 			}
 			return data; 
 		} 
