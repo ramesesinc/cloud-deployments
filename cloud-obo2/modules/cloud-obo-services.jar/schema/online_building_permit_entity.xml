@@ -6,7 +6,7 @@
 		<field name="profileid" />
 		<field name="profileno" />
 		<field name="entitytype" />		
-		<field name="name" />		
+		<field name="name" searchable="true" indexed="true" />		
 		<field name="firstname" required="true"/>
 		<field name="middlename" />
 		<field name="lastname" required="true"/>

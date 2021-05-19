@@ -6,9 +6,9 @@
 		<field name="apptype" required="true"/>
 		<complex name="worktypes" type="list" serializer="default" />
 
-		<field name="contact_name" required="true"/>
+		<field name="contact_name" required="true" indexed="true" />
 		<field name="contact_detail" />
-		<field name="contact_email" required="true"/>
+		<field name="contact_email" required="true" indexed="true" />
 		<field name="contact_mobileno"/>
 		<field name="dtfiled" type="timestamp"/>
 		<field name="title" />
