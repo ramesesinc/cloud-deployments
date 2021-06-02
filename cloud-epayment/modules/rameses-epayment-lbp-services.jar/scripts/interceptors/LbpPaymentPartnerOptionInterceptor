@@ -31,10 +31,11 @@ class LbpPaymentPartnerOptionInterceptor {
 		def error = evt.result;
 		println 'CloudPaymentService.postPartnerPaymentError: landbankerror ====================';
 		println 'args => ' + args;
-		println 'CloudPaymentService.postPartnerPaymentError: landbankerror ====================';
 		def po = svc.getPaymentOrder([objid: args.MerchantRefNo]);
 		error.code = args.Status;
   		error.orgcode = po.orgcode;
+		println 'error => ' + error
+		println 'CloudPaymentService.postPartnerPaymentError: landbankerror ====================';
 	}
 
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'lbp' }")

@@ -20,11 +20,12 @@ class DbpPaymentPartnerOptionInterceptor {
 		def error = evt.result;
 		println 'CloudPaymentService.postPartnerPaymentError: dbperror ====================';
 		println 'args => ' + args;
-		println 'CloudPaymentService.postPartnerPaymentError: dbperror ====================';
 		def po = svc.getPaymentOrder([objid: args.referenceCode]);
 		error.code = args.responseCode;
 		error.message = args.message;
   		error.orgcode = po.orgcode;
+		println 'error => ' + error
+		println 'CloudPaymentService.postPartnerPaymentError: dbperror ====================';
 	}
 
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'dbp' }")

@@ -38,9 +38,10 @@ class PayMayaPaymentPartnerOptionInterceptor {
 		def error = evt.result;
 		println 'CloudPaymentService.postPartnerPaymentError: paymayaerror ====================';
 		println 'args => ' + args;
-		println 'CloudPaymentService.postPartnerPaymentError: paymayaerror ====================';
 		def po = svc.getPaymentOrder([objid: args.paymentrefid]);
 		error.orgcode = po.orgcode;
+		println 'error => ' + error
+		println 'CloudPaymentService.postPartnerPaymentError: paymayaerror ====================';
 	}
 	
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'paymaya' }")

@@ -118,7 +118,7 @@ class CloudPaymentService {
 
 	@ProxyMethod
 	public def postPartnerPaymentError(params) {
-		def error = [code: null, message: null, orgcode: null];
+		def error = [:];
 		return error;
 	}
 

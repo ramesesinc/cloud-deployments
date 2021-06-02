@@ -58,9 +58,10 @@ class GcashPaymentPartnerOptionInterceptor {
 		def error = evt.result;
 		println 'CloudPaymentService.postPartnerPaymentError: gcasherror ====================';
 		println 'args => ' + args;
-		println 'CloudPaymentService.postPartnerPaymentError: gcasherror ====================';
 		def po = svc.getPaymentOrder([objid: args.paymentrefid]);
 		error.orgcode = po.orgcode;
+		println 'error => ' + error
+		println 'CloudPaymentService.postPartnerPaymentError: gcasherror ====================';
 	}
 	
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'gcash' }")
