@@ -116,6 +116,12 @@ class CloudPaymentService {
 		return pmt;
 	}
 
+	@ProxyMethod
+	public def postPartnerPaymentError(params) {
+		def error = [code: null, message: null, orgcode: null];
+		return error;
+	}
+
 	@ProxyMethod 
 	public def postPayment( def parms ) {
 		println '\n** postPayment -> ';

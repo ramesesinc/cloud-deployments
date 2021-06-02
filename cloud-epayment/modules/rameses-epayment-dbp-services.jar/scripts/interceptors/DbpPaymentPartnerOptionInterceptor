@@ -14,6 +14,19 @@ class DbpPaymentPartnerOptionInterceptor {
 		m.paymentrefid = m.referenceCode; 
 	}
 
+	@After(pattern="CloudPaymentService.postPartnerPaymentError", eval="#{args[0].statusid == 'dbperror' }")
+	public void afterPostPartnerPaymentError(evt) { 
+		def args = evt.args[0];
+		def error = evt.result;
+		println 'CloudPaymentService.postPartnerPaymentError: dbperror ====================';
+		println 'args => ' + args;
+		println 'CloudPaymentService.postPartnerPaymentError: dbperror ====================';
+		def po = svc.getPaymentOrder([objid: args.referenceCode]);
+		error.code = args.responseCode;
+		error.message = args.message;
+  		error.orgcode = po.orgcode;
+	}
+
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'dbp' }")
 	public void buildPaymentPartnerOption(evt) {
 		def po = evt.args[0].paymentorder;

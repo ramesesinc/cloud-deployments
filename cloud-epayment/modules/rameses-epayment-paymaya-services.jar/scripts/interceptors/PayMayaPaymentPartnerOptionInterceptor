@@ -31,6 +31,17 @@ class PayMayaPaymentPartnerOptionInterceptor {
 		args.paypartnerid = partner.objid; 
 		args.paymentrefid = pmt.requestReferenceNumber; 
 	}
+
+	@After(pattern="CloudPaymentService.postPartnerPaymentError", eval="#{args[0].statusid == 'paymayaerror' }")
+	public void afterPostPartnerPaymentError(evt) { 
+		def args = evt.args[0];
+		def error = evt.result;
+		println 'CloudPaymentService.postPartnerPaymentError: paymayaerror ====================';
+		println 'args => ' + args;
+		println 'CloudPaymentService.postPartnerPaymentError: paymayaerror ====================';
+		def po = svc.getPaymentOrder([objid: args.paymentrefid]);
+		error.orgcode = po.orgcode;
+	}
 	
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'paymaya' }")
 	public void buildPaymentPartnerOption(evt) { 
