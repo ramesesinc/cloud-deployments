@@ -129,7 +129,7 @@ class GcashPaymentPartnerOptionInterceptor {
 
 		def po = result.po; 
 		def orgcode = po?.orgcode;
-		logH('afterPostPartnerWebhook: paymentrefid = '+ po?.objid +', orgcode = '+ orgcode +', args -> '+ args);
+		logH('afterPostPartnerWebhook: paymentrefid = '+ args.paymentrefid +', po.objid = '+ po?.objid +', orgcode = '+ orgcode +', args -> '+ args);
 
 		def paypartnerid = args.paypartnerid; 
 		def partner = em_partner_option.find([ partnerid: orgcode.toString() ]).where('paypartner.objid = :paypartnerid', [paypartnerid: paypartnerid]).first(); 
@@ -144,7 +144,8 @@ class GcashPaymentPartnerOptionInterceptor {
 			return; 
 		}
 
-		em_log.create([ poid: po.objid, txntype: 'webhook', txndate: dtSvc.getServerDate(), info: [ request: args?.data ]]); 
+		def glog = [ poid: po.objid, txntype: 'webhook', txndate: dtSvc.getServerDate(), info: [ request: args?.data ]]; 
+		em_log.create( glog ); 
 
 		def acquirementStatus = null; 
 		def data_req_body = args?.data?.request?.body; 
@@ -192,12 +193,18 @@ class GcashPaymentPartnerOptionInterceptor {
 			]; 
 		}
 
+		if ( data_req_head == null ) {
+			data_req_head = [:]; 
+		}
+		data_req_head.po = po; 
+
 		def response = buildWebhookResponse( wallet, data_req_head, statusInfo ); 
 		result.response = [ response: response, signature: signSvc.getSignature( response )]; 
 		result.status = 200; 
 	}
 
 	def buildWebhookResponse( wallet, data_req_head, statusInfo ) {
+		def po = data_req_head.po; 
 		def response = [:]; 
 		response.head = orderQuerySvc.createHead([ info: wallet?.head ]); 
 		response.head.function = data_req_head?.function;
@@ -207,7 +214,7 @@ class GcashPaymentPartnerOptionInterceptor {
 		response.head.respTime = response.head.remove('reqTime'); 
 		response.head.reqMsgId = data_req_head?.reqMsgId; 
 		if ( !response.head.reqMsgId ) { 
-			response.head.reqMsgId = createGcashLog( po ); 
+			response.head.reqMsgId = createGcashLog([ poid: po.objid, txntype: 'order' ]);
 		}
 
 		response.body = [:];
