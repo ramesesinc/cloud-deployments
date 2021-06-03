@@ -1,6 +1,11 @@
 import com.rameses.annotations.*;
 
 class DbpPaymentPartnerOptionInterceptor {
+
+	final String PAY_PARTNER_ID = "DBP";
+
+	@Service('CloudPaymentService')
+	def cloudPaymentSvc; 
 	
 	@Service("DateService")
 	def dateSvc;
@@ -17,15 +22,16 @@ class DbpPaymentPartnerOptionInterceptor {
 	@After(pattern="CloudPaymentService.postPartnerPaymentError", eval="#{args[0].statusid == 'dbperror' }")
 	public void afterPostPartnerPaymentError(evt) { 
 		def args = evt.args[0];
+		log('afterPostPartnerPaymentError (args) => '+ args);		
+
 		def error = evt.result;
-		println 'CloudPaymentService.postPartnerPaymentError: dbperror ====================';
-		println 'args => ' + args;
-		def po = svc.getPaymentOrder([objid: args.referenceCode]);
 		error.code = args.responseCode;
 		error.message = args.message;
-  		error.orgcode = po.orgcode;
-		println 'error => ' + error
-		println 'CloudPaymentService.postPartnerPaymentError: dbperror ====================';
+
+		def po = cloudPaymentSvc.getPaymentOrder([ objid: args.referenceCode ]); 
+  		error.orgcode = po?.orgcode;
+		
+		log('afterPostPartnerPaymentError (error) => '+ error);
 	}
 
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'dbp' }")
@@ -41,7 +47,7 @@ class DbpPaymentPartnerOptionInterceptor {
 
 		def secval = partner.info?.terminalid + po.objid + '{' + partner.info?.transactionkey + '}'; 
 		params.securityToken = com.rameses.util.Encoder.SHA1.encode(secval);
-		println 'DBP getPaymentPartnerOption params => ' + params; 
+		log('buildPaymentPartnerOption (params) => '+ params);
 		partner.params = params; 
 	}
 
@@ -65,7 +71,12 @@ class DbpPaymentPartnerOptionInterceptor {
 
 		def responseToken = com.rameses.util.Encoder.SHA1.encode(requestToken + '{' + partner.info?.transactionkey + '}'); 
 		if(!responseToken.equals(params.securityToken)) {
+			log('Security token mismatch:  responseToken='+ responseToken +', securityToken='+ params.securityToken); 
 			throw new Exception("Security token mismatch. This is not a valid payment from DBP");
 		}
-	} 	
+	} 
+
+	void log( msg ) {
+		println ('\n'+ PAY_PARTNER_ID +': '+ msg);
+	}	
 }
