@@ -43,13 +43,24 @@ class GcashPaymentPartnerOptionInterceptor {
 	public void beforePostPartnerPayment(evt) { 
 		def args = evt.args[0];
 
-		println 'beforePostPartnerPayment ========================='
-
 		def partner = em_paymentpartner.find([objid: 'GCASH']).first();
 
-		def pmt = getPaymentDetail(partner, args)
+		def pmt = getPaymentDetail(partner, args);
 		args.paypartnerid = partner.objid; 
 		args.paymentrefid = pmt.requestReferenceNumber; 
+	}
+
+	@After(pattern="CloudPaymentService.postPartnerPaymentError", eval="#{args[0].statusid == 'gcasherror' }")
+	public void afterPostPartnerPaymentError(evt) { 
+		def args = evt.args[0];
+		logH('afterPostPartnerPaymentError: (args) => '+ args); 
+
+		def po = svc.getPaymentOrder([objid: args.paymentrefid]);
+
+		def error = evt.result;
+		error.orgcode = po?.orgcode;
+
+		logH('afterPostPartnerPaymentError: (error) => '+ error); 
 	}
 	
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'gcash' }")
@@ -59,7 +70,7 @@ class GcashPaymentPartnerOptionInterceptor {
 		def checkout = evt.args[0].checkout;
 		if ( checkout == null ) checkout = [:];
 
-		println '\n=== buildPaymentPartnerOption (partner) ====='
+		logH('buildPaymentPartnerOption: (partner) ===='); 
 		partner.each{ 
 			println '> '+ it; 
 		}
@@ -75,17 +86,17 @@ class GcashPaymentPartnerOptionInterceptor {
 		params.request.body.order = getOrder(partner, po, checkout);
 
 		params.signature = signSvc.getSignature(params.request);
-		println '\n=== buildPaymentPartnerOption (params) =====';
+		logH('buildPaymentPartnerOption: (params) ===='); 
 		params.each{ 
 			println '> '+ it; 
 		}
 
-		println '\n=== buildPaymentPartnerOption (checkout) =====';
+		logH('buildPaymentPartnerOption: (checkout) ===='); 
 		checkout.each{ 
 			println '> '+ it; 
 		}
 
-		println '\n=== buildPaymentPartnerOption (po) =====';
+		logH('buildPaymentPartnerOption: (po) ===='); 
 		po.each{ 
 			println '> '+ it; 
 		}
@@ -219,19 +230,19 @@ class GcashPaymentPartnerOptionInterceptor {
 	}
 
 	def getPaymentDetail(partner, args) {
-		println '\n=== getPaymentDetail (partner) =======';
+		logH('getPaymentDetail: (partner) ======'); 
 		partner.each{
 			println '> '+ it; 
 		}
 
-		println '\n=== getPaymentDetail (args) =======';
+		logH('getPaymentDetail: (args) ======'); 
 		args.each{
 			println '> '+ it; 
 		}
 
 		def po = em_po.select("checkoutid,checkouttype").find([ objid: args.paymentrefid ]).first();
 
-		println '\n=== getPaymentDetail (po) =======';
+		logH('getPaymentDetail: (po) ======'); 
 		po.each{
 			println '> '+ it; 
 		}
@@ -250,7 +261,6 @@ class GcashPaymentPartnerOptionInterceptor {
 	}
 
 	void checkOut(partner, po, checkout) {
-		println '\ncheckOut ========================'
 		if ( !checkout.type ) { 
 			checkout.type = 'wallet'; 
 		} 
@@ -259,10 +269,10 @@ class GcashPaymentPartnerOptionInterceptor {
 
 		def option = partner.info[ checkout.type ]; 
 		def urlPath = option.actionurl; 
-		println 'urlPath => ' + urlPath;
+		logH('checkOut: (urlPath) => '+ urlPath); 
 
-		def jsonreq = JsonUtil.toString( partner.params )
-		println 'json-request => ' + jsonreq;
+		def jsonreq = JsonUtil.toString( partner.params );
+		logH('checkOut: (json-request) => '+ jsonreq); 
 
 		System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2"); 
 
@@ -276,7 +286,7 @@ class GcashPaymentPartnerOptionInterceptor {
 			jsonres = retval.error; 
 		}
 
-		println 'json-response => '+ jsonres; 
+		logH('checkOut: (json-response) => '+ jsonres); 
 		em_log.find([ objid: reqMsgId.toString() ]).update([ info: [request: jsonreq, response: jsonres]]);  
 
 		if ( retval.responsecode == 200 ) {
@@ -288,11 +298,12 @@ class GcashPaymentPartnerOptionInterceptor {
 			partner.checkout.redirectUrl = resp.body.checkoutUrl; 
 
 			em_po.find([ objid: po.objid ]).update([ checkoutid: transactionId, checkouttype: checkout.type ]); 
+			logH('checkOut: success'); 
 		} 
 		else {
 			partner.error = JsonUtil.toMap( jsonres );
 			partner.error.errormsg = partner.error.error;
-			println 'ERROR => ' + partner.error;
+			logH('checkOut: (error) => '+ partner.error); 
 		}
 	}
 
@@ -309,24 +320,22 @@ class GcashPaymentPartnerOptionInterceptor {
 	}
 
 	def getOrder(partner, po, checkout) {
-		def order = [:]
+		def order = [:];
 		
-		order.seller = [:]
-		order.seller.userId = ''
-		order.seller.externalUserId = partner.objid
-		order.seller.externalUserType = partner.objid
+		order.seller = [:];
+		order.seller.userId = '';
+		order.seller.externalUserId = partner.objid;
+		order.seller.externalUserType = partner.objid;
 
-		order.buyer = [:]
-		order.buyer.userId = ''
-		order.buyer.externalUserId = 'FILIPIZEN'
-		order.buyer.externalUserType = 'FILIPIZEN'
+		order.buyer = [:];
+		order.buyer.userId = '';
+		order.buyer.externalUserId = 'FILIPIZEN';
+		order.buyer.externalUserType = 'FILIPIZEN';
 
-		order.orderTitle = po.particulars
-		order.orderAmount = ['currency': 'PHP', value: convertAsCentsFormat(getTotalAmount(po, checkout))]
-		order.merchantTransId = po.objid
-
-		println 'amount => ' + order.orderAmount
-		return order
+		order.orderTitle = po.particulars;
+		order.orderAmount = ['currency': 'PHP', value: convertAsCentsFormat(getTotalAmount(po, checkout))];
+		order.merchantTransId = po.objid;
+		return order;
 	}
 
 	def getTotalAmount(po, checkout) {

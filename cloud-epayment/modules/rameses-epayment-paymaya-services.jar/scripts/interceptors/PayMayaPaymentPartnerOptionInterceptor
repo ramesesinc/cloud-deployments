@@ -8,6 +8,8 @@ import com.rameses.http.BasicHttpClient
 //***********************
 class PayMayaPaymentPartnerOptionInterceptor {
 
+	final String PAY_PARTNER_ID = "PAYMAYA";
+
 	@DataContext('paymentorder')
 	def em_po
 
@@ -30,6 +32,18 @@ class PayMayaPaymentPartnerOptionInterceptor {
 		def pmt = getPaymentDetail(partner, args)
 		args.paypartnerid = partner.objid; 
 		args.paymentrefid = pmt.requestReferenceNumber; 
+	}
+
+	@After(pattern="CloudPaymentService.postPartnerPaymentError", eval="#{args[0].statusid == 'paymayaerror' }")
+	public void afterPostPartnerPaymentError(evt) { 
+		def args = evt.args[0];
+		log('afterPostPartnerPaymentError (args) => '+ args); 
+
+		def po = svc.getPaymentOrder([ objid: args.paymentrefid ]); 
+
+		def error = evt.result;
+		error.orgcode = po?.orgcode;
+		log('afterPostPartnerPaymentError (error) => '+ error);
 	}
 	
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'paymaya' }")
@@ -74,7 +88,7 @@ class PayMayaPaymentPartnerOptionInterceptor {
 		// unsuccessful payment, log and return 200
 		if (checkout.paymentStatus != "PAYMENT_SUCCESS") {
 			result.status = 200;
-			println 'WEBHOOK [INFO] unsuccessful payment: ' + paymentorderid + ': ' + checkout.paymentStatus;
+			log('afterPostPartnerWebhook:  unsuccessful payment: '+ paymentorderid +': '+ checkout.paymentStatus);
 			return;
 		}
 
@@ -82,9 +96,9 @@ class PayMayaPaymentPartnerOptionInterceptor {
 		def paidpo = em_po_paid.find([objid: paymentorderid]).first();
 		if (paidpo) {
 			result.status = 200;
-			println 'WEBHOOK [INFO] transaction already posted'
+			log('afterPostPartnerWebhook: Transaction already posted');
 			return;
-		};
+		} 
 
 		//is valid po
 		def po = em_po.find([objid: paymentorderid]).first();
@@ -94,11 +108,12 @@ class PayMayaPaymentPartnerOptionInterceptor {
 			params.paymentrefid = checkout.requestReferenceNumber;
 			params.paypartnerid = 'PAYMAYA';
 			svc.postPartnerPayment(params);
-			println 'WEBHOOK [INFO] post partner payment completed.'
-		} else {
+			log('afterPostPartnerWebhook: Post partner payment completed.');
+		} 
+		else {
 			//invalid po
 			result.status = 200;
-			println 'WEBHOOK [INFO] invalid transaction'
+			log('afterPostPartnerWebhook: Invalid transaction');
 		}
 	}
 
@@ -115,14 +130,16 @@ class PayMayaPaymentPartnerOptionInterceptor {
 			partner.checkout = JsonUtil.toMap(retval.data)
 			if ('card'.equalsIgnoreCase(checkout.type)) {
 				em_po.find([objid: po.objid]).update([checkoutid: partner.checkout.checkoutId, checkouttype: checkout.type])
-			} else if ('wallet'.equalsIgnoreCase(checkout.type)) {
+			} 
+			else if ('wallet'.equalsIgnoreCase(checkout.type)) {
 				em_po.find([objid: po.objid]).update([checkoutid: partner.checkout.paymentId, checkouttype: checkout.type])
 			}
-		} else {
-			partner.error = JsonUtil.toMap(retval.error)
-			partner.error.errormsg = partner.error.error
-			println 'ERROR => ' + partner.error
-		}
+		} 
+		else {
+			partner.error = JsonUtil.toMap( retval.error ); 
+			partner.error.errormsg = partner.error?.error; 
+			log('afterPostPartnerWebhook: (error) => '+ partner.error);
+		} 
 	}
 
 	def getPaymentDetail(partner, args) {
@@ -195,4 +212,7 @@ class PayMayaPaymentPartnerOptionInterceptor {
 		]
 	}
 
+	void log( msg ) {
+		println ('\n'+ PAY_PARTNER_ID +': '+ msg);
+	}	
 }

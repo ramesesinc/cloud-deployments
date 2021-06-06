@@ -6,7 +6,6 @@ import com.rameses.annotations.*;
 class LbpPaymentPartnerOptionInterceptor {
 
 	final String PAY_PARTNER_ID = "LBP";
-	
 
 	@Service('CloudPaymentService')
 	def cloudPaymentSvc; 
@@ -23,6 +22,20 @@ class LbpPaymentPartnerOptionInterceptor {
 		def m = evt.args[0];
 		m.paypartnerid = PAY_PARTNER_ID; 
 		m.paymentrefid = m.MerchantRefNo; 
+	}
+
+	@After(pattern="CloudPaymentService.postPartnerPaymentError", eval="#{args[0].statusid == 'landbankerror' }")
+	public void afterPostPartnerPaymentError(evt) { 
+		def args = evt.args[0];
+		log('afterPostPartnerPaymentError (args) => '+ args);
+
+		def error = evt.result;
+		error.code = args.Status;
+
+		def po = cloudPaymentSvc.getPaymentOrder([ objid: args.MerchantRefNo ]);
+  		error.orgcode = po?.orgcode;
+  		
+  		log('afterPostPartnerPaymentError (error) => '+ error);
 	}
 
 	@After(pattern="CloudPaymentService.getPaymentPartnerOption", eval="#{result.paypartnerid.toLowerCase() == 'lbp' }")
@@ -127,6 +140,6 @@ class LbpPaymentPartnerOptionInterceptor {
 	} 
 
 	void log( msg ) {
-		println (''+ PAY_PARTNER_ID +': '+ msg);
+		println ('\n'+ PAY_PARTNER_ID +': '+ msg);
 	}
 }
