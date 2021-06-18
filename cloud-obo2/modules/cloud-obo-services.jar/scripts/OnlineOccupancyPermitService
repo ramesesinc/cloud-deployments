@@ -195,7 +195,17 @@ public class OnlineOccupancyPermitService  {
 	@ProxyMethod
 	public def getRequirements( def o ) {
 		if(!o.appid) throw new Exception("appid is required");
-		return reqEm.find( [apptype: "occupancy"]).orderBy("sortorder").list();
+
+		//get first the org of the application
+		def orgid = appEm.find([objid: o.appid ]).select("orgcode").val();
+		def list = [];
+		def vlist = reqEm.find( [apptype: "occupancy"]).orderBy("sortorder").list();
+		vlist.each {
+			if(it.disallowed && orgid.matches( it.disallowed ) ) return;
+			if(it.allowed  && !orgid.matches(it.allowed ) ) return;
+			list << it; 
+		}
+		return list;
 	}
 
 	def formatAddress( def addr ) {
