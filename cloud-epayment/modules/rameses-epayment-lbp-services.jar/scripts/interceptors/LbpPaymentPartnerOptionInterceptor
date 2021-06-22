@@ -53,8 +53,14 @@ class LbpPaymentPartnerOptionInterceptor {
 		params.MerchantCode = partner.info?.merchantcode; 
 		params.MerchantRefNo = po.objid; 
 
+		def txntypename = po.txntypename; 
+		if ( !txntypename.toString().matches("Business Permit|Real Property Tax")) {
+			txntypename = "Other";
+		}
+
 		def parbuff = new StringBuilder(); 
-		parbuff.append("Transaction_type=${po.txntypename};Name of Payor=${paidbystr};Tax Reference Number=${po.objid};Remarks=NA");
+		parbuff.append("Transaction_type=${txntypename};Name of Payor=${paidbystr};Tax Reference Number=${po.objid};Remarks=NA");
+		
 		if ( po.email ) { 
 			parbuff.append(";Email Address=${po.email}"); 
 		}
