@@ -10,5 +10,9 @@
 		<field name="title" />
 		<field name="sortorder" />
 		<field name="permittype" />
+
+		<field name="allowed" />
+		<field name="disallowed" />
+
 	</element>
 </schema>
