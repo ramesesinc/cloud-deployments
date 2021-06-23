@@ -407,9 +407,7 @@ public class OnlineBuildingPermitService  {
 		if( !vreq ) {
 			vreq = reqEm.find( [apptype: "building"] ).where("orgcode IS NULL " ).first();
 		}
-		return vreq.text;
+		return [text: vreq.text];
 	}
-
-
 
 }

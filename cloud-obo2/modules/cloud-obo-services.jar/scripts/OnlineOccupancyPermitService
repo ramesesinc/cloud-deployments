@@ -33,7 +33,7 @@ public class OnlineOccupancyPermitService  {
 	@DataContext("online_occupancy_permit_info")
 	def appInfoEm;
 
-	@DataContext("obo_permit_requirement")
+	@DataContext("obo_requirement_list")
 	def reqEm;
 
 	@ProxyMethod
@@ -201,7 +201,7 @@ public class OnlineOccupancyPermitService  {
 		if( !vreq ) {
 			vreq = reqEm.find( [apptype: "occupancy"] ).where("orgcode IS NULL " ).first();
 		}
-		return vreq.text;
+		return [text: vreq.text];
 	}
 
 	def formatAddress( def addr ) {
