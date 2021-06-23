@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.004b194e.chunk.css",
-    "main.js": "/static/js/main.e3be66c6.chunk.js",
+    "main.js": "/static/js/main.8b12f310.chunk.js",
     "runtime-main.js": "/static/js/runtime-main.fc48bcc1.js",
     "static/css/2.826a7d64.chunk.css": "/static/css/2.826a7d64.chunk.css",
     "static/js/2.1dba671e.chunk.js": "/static/js/2.1dba671e.chunk.js",
@@ -10,7 +10,7 @@
     "static/js/5.dd2fe6c0.chunk.js": "/static/js/5.dd2fe6c0.chunk.js",
     "static/js/6.1e32430c.chunk.js": "/static/js/6.1e32430c.chunk.js",
     "index.html": "/index.html",
-    "precache-manifest.9d402e5f21ee674ce76e086b5c946d3b.js": "/precache-manifest.9d402e5f21ee674ce76e086b5c946d3b.js",
+    "precache-manifest.fd134c8e407e7ecf5c94fbcb0af0157c.js": "/precache-manifest.fd134c8e407e7ecf5c94fbcb0af0157c.js",
     "service-worker.js": "/service-worker.js",
     "static/js/2.1dba671e.chunk.js.LICENSE.txt": "/static/js/2.1dba671e.chunk.js.LICENSE.txt",
     "static/media/filipizen.svg": "/static/media/filipizen.5fd85b9e.svg",
@@ -21,6 +21,6 @@
     "static/css/2.826a7d64.chunk.css",
     "static/js/2.1dba671e.chunk.js",
     "static/css/main.004b194e.chunk.css",
-    "static/js/main.e3be66c6.chunk.js"
+    "static/js/main.8b12f310.chunk.js"
   ]
 }
