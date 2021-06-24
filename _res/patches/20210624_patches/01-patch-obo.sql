@@ -16,3 +16,8 @@ CREATE TABLE `obo_requirement_list` (
 ; 
 
 
+alter table obo_requirement_type add (
+    `allowed` varchar(255) NULL, 
+    `disallowed` varchar(255) NULL
+)
+;
