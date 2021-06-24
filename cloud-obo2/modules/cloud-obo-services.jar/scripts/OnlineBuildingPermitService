@@ -33,11 +33,11 @@ public class OnlineBuildingPermitService  {
 	@Service("OboContactInfoService")
 	def contactSvc;
 
-	@DataContext("obo_permit_requirement")
-	def reqEm;
-
 	@DataContext("obo_permit_type")
 	def permitTypeEm;
+
+	@DataContext("obo_requirement_list")
+	def reqEm;
 
 	@ProxyMethod
 	public def create(def o) {
@@ -386,23 +386,28 @@ public class OnlineBuildingPermitService  {
 	}
 	
 	@ProxyMethod
-	public def getRequirements( def o ) {
-		if(!o.appid) throw new Exception("appid is required");
-		def list = reqEm.find( [apptype: "building"]).orderBy("sortorder").list();
-
+	public def getDocsForDownload(def o) {
+		if(!o.appid) throw new Exception("appid is required in OnlineBuildingPermitService.getDocsForDownload");
 		//apps to download
 		def mitems = [ [reportid:"building_permit", title:"Building Permit", refid: o.appid] ];
-
-		def alist= ancillaryEm.select("objid,permittypeid,type.title").find( [appid: o.appid ] ).orderBy("type.sortorder").list();
+		def alist = ancillaryEm.select("objid,permittypeid,type.title").find( [appid: o.appid ] ).orderBy("type.sortorder").list();
 		alist.each {
 			mitems << [reportid: 'building_ancillary_' + it.permittypeid, title: it.type.title, refid: it.objid ]; 
 		}
-
-		def firstItem = list[0];
-		firstItem.docs = mitems;
-		return list;
+		return mitems;
 	}
 
 
+	@ProxyMethod
+	public def getRequirements( def o ) {
+		if(!o.appid) throw new Exception("appid is required");
+		def orgid = appEm.find([objid: o.appid ]).select("orgcode").val();
+
+		def vreq = reqEm.find( [apptype: "building"] ).where("orgcode = :orgid", [orgid: orgid] ).first();
+		if( !vreq ) {
+			vreq = reqEm.find( [apptype: "building"] ).where("orgcode IS NULL " ).first();
+		}
+		return [text: vreq.text];
+	}
 
 }

@@ -33,7 +33,7 @@ public class OnlineOccupancyPermitService  {
 	@DataContext("online_occupancy_permit_info")
 	def appInfoEm;
 
-	@DataContext("obo_permit_requirement")
+	@DataContext("obo_requirement_list")
 	def reqEm;
 
 	@ProxyMethod
@@ -195,7 +195,13 @@ public class OnlineOccupancyPermitService  {
 	@ProxyMethod
 	public def getRequirements( def o ) {
 		if(!o.appid) throw new Exception("appid is required");
-		return reqEm.find( [apptype: "occupancy"]).orderBy("sortorder").list();
+		def orgid = appEm.find([objid: o.appid ]).select("orgcode").val();
+
+		def vreq = reqEm.find( [apptype: "occupancy"] ).where("orgcode = :orgid", [orgid: orgid] ).first();
+		if( !vreq ) {
+			vreq = reqEm.find( [apptype: "occupancy"] ).where("orgcode IS NULL " ).first();
+		}
+		return [text: vreq.text];
 	}
 
 	def formatAddress( def addr ) {

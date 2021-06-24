@@ -4,5 +4,7 @@
 		<field name="title" />
 		<field name="sortorder" />
 		<field name="apptype" />
+		<field name="allowed" />
+		<field name="disallowed" />		
 	</element>
 </schema>

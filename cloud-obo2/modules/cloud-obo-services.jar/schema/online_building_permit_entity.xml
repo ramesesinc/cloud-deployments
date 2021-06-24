@@ -6,11 +6,11 @@
 		<field name="profileid" />
 		<field name="profileno" />
 		<field name="entitytype" />		
-		<field name="name" />		
-		<field name="firstname" required="true"/>
+		<field name="name" indexed="true" caption="Name"/>		
+		<field name="firstname" required="true" indexed="true" caption="First Name"/>
 		<field name="middlename" />
-		<field name="lastname" required="true"/>
-		<field name="resident" required="true"/>
+		<field name="lastname" required="true" indexed="true" caption="Last Name"/>
+		<field name="resident" required="true" />
 
 		<field name="address_objid" />
 		<field name="address_text" />
